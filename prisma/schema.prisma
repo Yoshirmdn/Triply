@@ -1,0 +1,238 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../lib/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum Role {
+  SUPER_ADMIN
+  USER
+}
+
+enum TripStatus {
+  PLANNING
+  UPCOMING
+  ONGOING
+  COMPLETED
+  CANCELLED
+}
+
+enum TripMemberRole {
+  OWNER
+  EDITOR
+  VIEWER
+}
+
+enum ExpenseCategory {
+  TRANSPORTATION
+  ACCOMMODATION
+  FOOD_DRINKS
+  ATTRACTIONS_TICKETS
+  SHOPPING
+  OTHER
+}
+
+enum PlaceCategory {
+  ATTRACTION
+  RESTAURANT
+  CAFE
+  HOTEL
+  SHOPPING
+  MUSEUM
+  NATURE
+  ENTERTAINMENT
+  OTHER
+}
+
+model User {
+  id            String        @id @default(uuid()) @db.Uuid
+  name          String?
+  email         String        @unique
+  emailVerified DateTime?
+  image         String?
+  role          Role          @default(USER)
+  isActive      Boolean       @default(true)
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+  accounts      Account[]
+  sessions      Session[]
+  trips         Trip[]
+  tripMembers   TripMember[]
+  favorites     Favorite[]
+  activityLogs  ActivityLog[]
+
+  @@index([role])
+  @@index([isActive])
+  @@index([createdAt])
+}
+
+model Account {
+  id                String  @id @default(uuid()) @db.Uuid
+  userId            String  @db.Uuid
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String? @db.Text
+  access_token      String? @db.Text
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String? @db.Text
+  session_state     String?
+  user              User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+  @@index([userId])
+}
+
+model Session {
+  id           String   @id @default(uuid()) @db.Uuid
+  sessionToken String   @unique
+  userId       String   @db.Uuid
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+}
+
+model Trip {
+  id          String       @id @default(uuid()) @db.Uuid
+  userId      String       @db.Uuid
+  title       String       @db.VarChar(120)
+  destination String       @db.VarChar(160)
+  description String?      @db.Text
+  startDate   DateTime     @db.Date
+  endDate     DateTime     @db.Date
+  travelers   Int          @default(1)
+  budget      Decimal      @default(0) @db.Decimal(14, 2)
+  coverImage  String?
+  status      TripStatus   @default(PLANNING)
+  shareToken  String?      @unique
+  isPublic    Boolean      @default(false)
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+  user        User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  members     TripMember[]
+  days        TripDay[]
+  expenses    Expense[]
+
+  @@index([userId, status])
+  @@index([startDate])
+  @@index([isPublic])
+}
+
+model TripMember {
+  id        String         @id @default(uuid()) @db.Uuid
+  tripId    String         @db.Uuid
+  userId    String         @db.Uuid
+  role      TripMemberRole @default(VIEWER)
+  createdAt DateTime       @default(now())
+  trip      Trip           @relation(fields: [tripId], references: [id], onDelete: Cascade)
+  user      User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([tripId, userId])
+  @@index([userId])
+}
+
+model TripDay {
+  id        String          @id @default(uuid()) @db.Uuid
+  tripId    String          @db.Uuid
+  date      DateTime        @db.Date
+  dayNumber Int
+  createdAt DateTime        @default(now())
+  updatedAt DateTime        @updatedAt
+  trip      Trip            @relation(fields: [tripId], references: [id], onDelete: Cascade)
+  items     ItineraryItem[]
+
+  @@unique([tripId, dayNumber])
+  @@unique([tripId, date])
+  @@index([tripId])
+}
+
+model Place {
+  id              String          @id @default(uuid()) @db.Uuid
+  provider        String          @default("google")
+  providerPlaceId String
+  name            String
+  address         String?
+  latitude        Float           @db.DoublePrecision
+  longitude       Float           @db.DoublePrecision
+  category        PlaceCategory   @default(OTHER)
+  refreshedAt     DateTime        @default(now())
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+  items           ItineraryItem[]
+  favorites       Favorite[]
+
+  @@unique([provider, providerPlaceId])
+  @@index([category])
+}
+
+model ItineraryItem {
+  id        String   @id @default(uuid()) @db.Uuid
+  tripDayId String   @db.Uuid
+  placeId   String?  @db.Uuid
+  title     String?  @db.VarChar(160)
+  startTime String?  @db.VarChar(5)
+  endTime   String?  @db.VarChar(5)
+  sortOrder Int
+  notes     String?  @db.Text
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  tripDay   TripDay  @relation(fields: [tripDayId], references: [id], onDelete: Cascade)
+  place     Place?   @relation(fields: [placeId], references: [id], onDelete: SetNull)
+
+  @@index([tripDayId, sortOrder])
+  @@index([placeId])
+}
+
+model Expense {
+  id          String          @id @default(uuid()) @db.Uuid
+  tripId      String          @db.Uuid
+  category    ExpenseCategory
+  description String          @db.VarChar(200)
+  amount      Decimal         @db.Decimal(14, 2)
+  expenseDate DateTime        @db.Date
+  createdAt   DateTime        @default(now())
+  updatedAt   DateTime        @updatedAt
+  trip        Trip            @relation(fields: [tripId], references: [id], onDelete: Cascade)
+
+  @@index([tripId, expenseDate])
+  @@index([tripId, category])
+}
+
+model Favorite {
+  id        String   @id @default(uuid()) @db.Uuid
+  userId    String   @db.Uuid
+  placeId   String   @db.Uuid
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  place     Place    @relation(fields: [placeId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, placeId])
+  @@index([placeId])
+}
+
+model ActivityLog {
+  id          String   @id @default(uuid()) @db.Uuid
+  userId      String?  @db.Uuid
+  action      String   @db.VarChar(80)
+  description String   @db.Text
+  createdAt   DateTime @default(now())
+  user        User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([userId])
+  @@index([createdAt])
+  @@index([action])
+}
