@@ -1,0 +1,39 @@
+"use client";
+
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+
+export function DeleteTripButton({ tripId, title }: { tripId: string; title: string }) {
+  const router = useRouter();
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  async function handleDelete() {
+    if (!window.confirm(`Hapus perjalanan "${title}"? Semua hari, itinerary, dan pengeluaran ikut terhapus.`)) return;
+    setLoading(true);
+    setError(null);
+    const response = await fetch(`/api/v1/trips/${tripId}`, { method: "DELETE" });
+    if (!response.ok) {
+      const json = await response.json().catch(() => null);
+      setError(json?.error?.message ?? "Gagal menghapus perjalanan");
+      setLoading(false);
+      return;
+    }
+    router.push("/dashboard/trips");
+    router.refresh();
+  }
+
+  return (
+    <div className="flex flex-col items-end gap-1">
+      <button
+        type="button"
+        onClick={handleDelete}
+        disabled={loading}
+        className="rounded-lg border border-red-200 px-3 py-1.5 text-sm font-medium text-red-700 transition hover:bg-red-50 disabled:opacity-60"
+      >
+        {loading ? "Menghapus..." : "Hapus"}
+      </button>
+      {error ? <span className="text-xs text-red-600">{error}</span> : null}
+    </div>
+  );
+}
