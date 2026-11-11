@@ -11,7 +11,7 @@ const serverSchema = z.object({
   API_GUARD_PASSWORD: z.string().optional(),
   NEXT_PUBLIC_AUTH_USERNAME: z.string().optional(),
   NEXT_PUBLIC_AUTH_PASSWORD: z.string().optional(),
-  GOOGLE_PLACES_API_KEY: z.string().min(1).optional(),
+  GEOAPIFY_API_KEY: z.string().min(1).optional(),
   MAPBOX_SECRET_TOKEN: z.string().min(1).optional(),
 });
 
@@ -23,7 +23,9 @@ export function getEnv(): ServerEnv {
   if (cached) return cached;
   const parsed = serverSchema.safeParse(process.env);
   if (!parsed.success) {
-    const keys = parsed.error.issues.map((issue) => issue.path.join(".")).join(", ");
+    const keys = parsed.error.issues
+      .map((issue) => issue.path.join("."))
+      .join(", ");
     throw new Error(`Invalid or missing environment variables: ${keys}`);
   }
   cached = parsed.data;
