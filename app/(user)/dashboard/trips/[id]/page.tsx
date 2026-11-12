@@ -49,6 +49,13 @@ export default async function TripDetailPage({ params }: TripDetailPageProps) {
             <Route className="size-4" />
             Planner
           </Link>
+          <Link
+            href={`/dashboard/trips/${trip.id}/budget`}
+            className="inline-flex items-center gap-2 rounded-lg border border-neutral-200 bg-white px-3 py-1.5 text-sm font-medium text-neutral-700 hover:bg-neutral-50"
+          >
+            <Wallet className="size-4" />
+            Budget
+          </Link>
           {trip.canEdit ? (
             <Link
               href={`/dashboard/trips/${trip.id}/edit`}
@@ -111,7 +118,7 @@ export default async function TripDetailPage({ params }: TripDetailPageProps) {
             </li>
           ))}
         </ul>
-        <p className="text-xs text-neutral-400">Budget dan pengeluaran akan tersedia di tahap pengembangan berikutnya.</p>
+        <p className="text-xs text-neutral-400">Catat pengeluaran dan pantau sisa budget di halaman Budget.</p>
       </section>
     </div>
   );

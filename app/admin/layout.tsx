@@ -2,7 +2,12 @@ import { requirePageRole } from "@/lib/permissions";
 import { siteConfig } from "@/data/site";
 import { AppHeader } from "@/components/fragment/app-header";
 
-const links = [{ label: "Ringkasan", href: "/admin", exact: true }];
+const links = [
+  { label: "Ringkasan", href: "/admin", exact: true },
+  { label: "Pengguna", href: "/admin/users" },
+  { label: "Perjalanan", href: "/admin/trips" },
+  { label: "Aktivitas", href: "/admin/activity" },
+];
 
 export default async function AdminLayout({ children }: { children: React.ReactNode }) {
   const actor = await requirePageRole("SUPER_ADMIN");
