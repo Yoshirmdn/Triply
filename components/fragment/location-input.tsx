@@ -32,16 +32,10 @@ export function LocationInput({
 
   useEffect(() => {
     const text = value.trim();
-    if (text.length < 2 || !open) {
-      setSuggestions([]);
-      return;
-    }
+    if (text.length < 2 || !open) return;
     const controller = new AbortController();
     const timer = setTimeout(() => {
-      apiGet<PlaceSuggestionDTO[]>(
-        `/places/autocomplete?input=${encodeURIComponent(text)}`,
-        { signal: controller.signal },
-      )
+      apiGet<PlaceSuggestionDTO[]>(`/places/autocomplete?input=${encodeURIComponent(text)}`, { signal: controller.signal })
         .then(setSuggestions)
         .catch(() => setSuggestions([]));
     }, 350);
@@ -50,6 +44,8 @@ export function LocationInput({
       controller.abort();
     };
   }, [value, open]);
+
+  const visibleSuggestions = open && value.trim().length >= 2 ? suggestions : [];
 
   return (
     <div className="relative">
@@ -69,25 +65,17 @@ export function LocationInput({
         }}
         placeholder={placeholder}
         autoComplete="off"
-        className={cn(
-          "w-full rounded-lg border border-neutral-300 bg-white py-2.5 pl-9 pr-3 text-sm",
-          className,
-        )}
+        className={cn("w-full rounded-lg border border-neutral-300 bg-white py-2.5 pl-9 pr-3 text-sm", className)}
       />
-      {open && suggestions.length > 0 ? (
+      {visibleSuggestions.length > 0 ? (
         <ul className="absolute z-20 mt-1 w-full overflow-hidden rounded-lg border border-neutral-200 bg-white shadow-lg">
-          {suggestions.map((suggestion) => (
+          {visibleSuggestions.map((suggestion) => (
             <li key={suggestion.key}>
               <button
                 type="button"
                 onMouseDown={(event) => event.preventDefault()}
                 onClick={() => {
-                  const label = [
-                    suggestion.primaryText,
-                    suggestion.secondaryText,
-                  ]
-                    .filter(Boolean)
-                    .join(", ");
+                  const label = [suggestion.primaryText, suggestion.secondaryText].filter(Boolean).join(", ");
                   onValueChange(label);
                   setOpen(false);
                   setSuggestions([]);
@@ -95,13 +83,9 @@ export function LocationInput({
                 }}
                 className="block w-full px-3 py-2 text-left hover:bg-neutral-50"
               >
-                <span className="block text-sm font-medium text-neutral-900">
-                  {suggestion.primaryText}
-                </span>
+                <span className="block text-sm font-medium text-neutral-900">{suggestion.primaryText}</span>
                 {suggestion.secondaryText ? (
-                  <span className="block text-xs text-neutral-500">
-                    {suggestion.secondaryText}
-                  </span>
+                  <span className="block text-xs text-neutral-500">{suggestion.secondaryText}</span>
                 ) : null}
               </button>
             </li>

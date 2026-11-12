@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { CalendarDays, MapPin, Pencil, Users, Wallet } from "lucide-react";
+import { CalendarDays, MapPin, Pencil, Route, Users, Wallet } from "lucide-react";
 import { requirePageUser } from "@/lib/permissions";
 import { loadTripOrNotFound } from "@/lib/page-helpers";
 import { TripStatusBadge } from "@/components/fragment/trip-status-badge";
@@ -42,6 +42,13 @@ export default async function TripDetailPage({ params }: TripDetailPageProps) {
           </p>
         </div>
         <div className="flex items-start gap-2">
+          <Link
+            href={`/dashboard/trips/${trip.id}/planner`}
+            className="inline-flex items-center gap-2 rounded-lg bg-teal-800 px-3 py-1.5 text-sm font-medium text-white hover:bg-teal-900"
+          >
+            <Route className="size-4" />
+            Planner
+          </Link>
           {trip.canEdit ? (
             <Link
               href={`/dashboard/trips/${trip.id}/edit`}
@@ -104,7 +111,7 @@ export default async function TripDetailPage({ params }: TripDetailPageProps) {
             </li>
           ))}
         </ul>
-        <p className="text-xs text-neutral-400">Itinerary, peta, dan budget akan tersedia di tahap pengembangan berikutnya.</p>
+        <p className="text-xs text-neutral-400">Budget dan pengeluaran akan tersedia di tahap pengembangan berikutnya.</p>
       </section>
     </div>
   );

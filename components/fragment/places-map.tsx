@@ -16,37 +16,30 @@ type PlacesMapProps = {
 const DEFAULT_CENTER: [number, number] = [-2.5, 118];
 const DEFAULT_ZOOM = 4;
 
-export function PlacesMap({
-  center,
-  places,
-  activeId,
-  onSelect,
-  userLocation,
-}: PlacesMapProps) {
+export function PlacesMap({ center, places, activeId, onSelect, userLocation }: PlacesMapProps) {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const mapRef = useRef<LeafletMap | null>(null);
   const layerRef = useRef<LayerGroup | null>(null);
   const markersRef = useRef<Map<string, CircleMarker>>(new Map());
   const leafletRef = useRef<typeof import("leaflet") | null>(null);
   const onSelectRef = useRef(onSelect);
-  onSelectRef.current = onSelect;
+  useEffect(() => {
+    onSelectRef.current = onSelect;
+  });
 
   useEffect(() => {
     let cancelled = false;
+    const markers = markersRef.current;
 
     async function init() {
       const L = await import("leaflet");
       if (cancelled || !containerRef.current || mapRef.current) return;
       leafletRef.current = L;
 
-      const map = L.map(containerRef.current, { zoomControl: true }).setView(
-        DEFAULT_CENTER,
-        DEFAULT_ZOOM,
-      );
+      const map = L.map(containerRef.current, { zoomControl: true }).setView(DEFAULT_CENTER, DEFAULT_ZOOM);
       L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
         maxZoom: 19,
-        attribution:
-          '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
       }).addTo(map);
 
       layerRef.current = L.layerGroup().addTo(map);
@@ -61,7 +54,7 @@ export function PlacesMap({
       mapRef.current?.remove();
       mapRef.current = null;
       layerRef.current = null;
-      markersRef.current.clear();
+      markers.clear();
     };
   }, []);
 
@@ -74,10 +67,7 @@ export function PlacesMap({
 
       const waitForMap = () =>
         new Promise<void>((resolve) => {
-          const check = () =>
-            mapRef.current && layerRef.current
-              ? resolve()
-              : setTimeout(check, 50);
+          const check = () => (mapRef.current && layerRef.current ? resolve() : setTimeout(check, 50));
           check();
         });
       await waitForMap();
@@ -149,10 +139,7 @@ export function PlacesMap({
   useEffect(() => {
     markersRef.current.forEach((marker, id) => {
       const active = id === activeId;
-      marker.setStyle({
-        fillColor: active ? "#f59e0b" : "#115e59",
-        radius: active ? 11 : 8,
-      });
+      marker.setStyle({ fillColor: active ? "#f59e0b" : "#115e59", radius: active ? 11 : 8 });
       if (active) {
         marker.bringToFront();
         marker.openPopup();
@@ -160,23 +147,12 @@ export function PlacesMap({
     });
   }, [activeId]);
 
-  return (
-    <div
-      ref={containerRef}
-      className="h-full w-full rounded-xl border border-neutral-200"
-    />
-  );
+  return <div ref={containerRef} className="h-full w-full rounded-xl border border-neutral-200" />;
 }
 
 function escapeHtml(value: string) {
   return value.replace(/[&<>"']/g, (char) => {
-    const map: Record<string, string> = {
-      "&": "&amp;",
-      "<": "&lt;",
-      ">": "&gt;",
-      '"': "&quot;",
-      "'": "&#39;",
-    };
+    const map: Record<string, string> = { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" };
     return map[char];
   });
 }

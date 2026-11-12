@@ -2,15 +2,11 @@ import "server-only";
 import { prisma } from "@/lib/prisma";
 import { PLACE_PROVIDER } from "@/data/places";
 import type { PlaceInput } from "@/lib/validations/place.schema";
+import type { ItineraryItemDTO } from "@/@type/place";
 
 export async function upsertPlace(input: PlaceInput) {
   return prisma.place.upsert({
-    where: {
-      provider_providerPlaceId: {
-        provider: PLACE_PROVIDER,
-        providerPlaceId: input.placeId,
-      },
-    },
+    where: { provider_providerPlaceId: { provider: PLACE_PROVIDER, providerPlaceId: input.placeId } },
     create: {
       provider: PLACE_PROVIDER,
       providerPlaceId: input.placeId,
@@ -38,16 +34,7 @@ export function serializeSavedPlace(place: {
   address: string | null;
   latitude: number;
   longitude: number;
-  category:
-    | "ATTRACTION"
-    | "RESTAURANT"
-    | "CAFE"
-    | "HOTEL"
-    | "SHOPPING"
-    | "MUSEUM"
-    | "NATURE"
-    | "ENTERTAINMENT"
-    | "OTHER";
+  category: "ATTRACTION" | "RESTAURANT" | "CAFE" | "HOTEL" | "SHOPPING" | "MUSEUM" | "NATURE" | "ENTERTAINMENT" | "OTHER";
 }) {
   return {
     id: place.id,
@@ -57,5 +44,29 @@ export function serializeSavedPlace(place: {
     latitude: place.latitude,
     longitude: place.longitude,
     category: place.category,
+  };
+}
+
+export function serializeItineraryItem(item: {
+  id: string;
+  tripDayId: string;
+  placeId: string | null;
+  title: string | null;
+  startTime: string | null;
+  endTime: string | null;
+  sortOrder: number;
+  notes: string | null;
+  place: Parameters<typeof serializeSavedPlace>[0] | null;
+}): ItineraryItemDTO {
+  return {
+    id: item.id,
+    tripDayId: item.tripDayId,
+    placeId: item.placeId,
+    title: item.title,
+    startTime: item.startTime,
+    endTime: item.endTime,
+    sortOrder: item.sortOrder,
+    notes: item.notes,
+    place: item.place ? serializeSavedPlace(item.place) : null,
   };
 }
