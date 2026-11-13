@@ -7,12 +7,9 @@ const serverSchema = z.object({
   AUTH_GOOGLE_ID: z.string().min(1),
   AUTH_GOOGLE_SECRET: z.string().min(1),
   SUPER_ADMIN_EMAIL: z.string().email().optional(),
-  API_GUARD_USERNAME: z.string().optional(),
-  API_GUARD_PASSWORD: z.string().optional(),
   NEXT_PUBLIC_AUTH_USERNAME: z.string().optional(),
   NEXT_PUBLIC_AUTH_PASSWORD: z.string().optional(),
   GEOAPIFY_API_KEY: z.string().min(1).optional(),
-  MAPBOX_SECRET_TOKEN: z.string().min(1).optional(),
 });
 
 type ServerEnv = z.infer<typeof serverSchema>;
