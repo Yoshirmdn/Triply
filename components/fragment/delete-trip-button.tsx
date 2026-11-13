@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { ApiClientError, apiDelete } from "@/lib/api-client";
 
 export function DeleteTripButton({ tripId, title }: { tripId: string; title: string }) {
   const router = useRouter();
@@ -12,15 +13,14 @@ export function DeleteTripButton({ tripId, title }: { tripId: string; title: str
     if (!window.confirm(`Hapus perjalanan "${title}"? Semua hari, itinerary, dan pengeluaran ikut terhapus.`)) return;
     setLoading(true);
     setError(null);
-    const response = await fetch(`/api/v1/trips/${tripId}`, { method: "DELETE" });
-    if (!response.ok) {
-      const json = await response.json().catch(() => null);
-      setError(json?.error?.message ?? "Gagal menghapus perjalanan");
+    try {
+      await apiDelete(`/trips/${tripId}`);
+      router.push("/dashboard/trips");
+      router.refresh();
+    } catch (err) {
+      setError(err instanceof ApiClientError ? err.message : "Gagal menghapus perjalanan");
       setLoading(false);
-      return;
     }
-    router.push("/dashboard/trips");
-    router.refresh();
   }
 
   return (
