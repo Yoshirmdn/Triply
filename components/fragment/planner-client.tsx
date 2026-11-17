@@ -32,6 +32,7 @@ import { formatDistance, formatDuration } from "@/utils/format";
 import type { RouteDTO, RouteLegDTO } from "@/@type/itinerary";
 import type { ItineraryItemDTO } from "@/@type/place";
 import type { TripDayDTO } from "@/@type/trip";
+import { PlacePhoto } from "@/components/fragment/place-photo";
 
 type Columns = Record<string, ItineraryItemDTO[]>;
 
@@ -146,6 +147,16 @@ function SortableItem({ item, index, canEdit, leg, onUpdate, onRemove, tripId }:
             {index + 1}
           </span>
           <div className="min-w-0 flex-1 space-y-1">
+                      {item.place ? (
+            <PlacePhoto
+              name={item.place.name}
+              latitude={item.place.latitude}
+              longitude={item.place.longitude}
+              category={item.place.category}
+              className="size-14 shrink-0 rounded-lg"
+              iconClassName="size-5"
+            />
+          ) : null}
             <p className="font-medium text-neutral-900">{name}</p>
             <p className="text-xs text-neutral-500">
               {item.place ? PLACE_CATEGORY_LABELS[item.place.category] : "Catatan"}

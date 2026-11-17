@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { CalendarDays, MapPin, Users } from "lucide-react";
 import { siteConfig } from "@/data/site";
 import { getPublicTrip } from "@/lib/share-helpers";
+import { PlacePhoto } from "@/components/fragment/place-photo";
 import { PublicTripView } from "@/components/fragment/public-trip-view";
 import { TripStatusBadge } from "@/components/fragment/trip-status-badge";
 import { formatDateID } from "@/utils/date";
@@ -14,11 +15,7 @@ type SharePageProps = {
 export async function generateMetadata({ params }: SharePageProps) {
   const { token } = await params;
   const trip = await getPublicTrip(token);
-  if (!trip)
-    return {
-      title: "Tautan tidak ditemukan",
-      robots: { index: false, follow: false },
-    };
+  if (!trip) return { title: "Tautan tidak ditemukan", robots: { index: false, follow: false } };
   return {
     title: trip.title,
     description: `Itinerary ${trip.destination} oleh ${trip.ownerName}`,
@@ -35,34 +32,32 @@ export default async function SharePage({ params }: SharePageProps) {
     <div className="min-h-screen bg-neutral-50">
       <header className="border-b border-neutral-200 bg-white">
         <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-4">
-          <Link
-            href="/"
-            className="text-lg font-semibold tracking-tight text-teal-900"
-          >
+          <Link href="/" className="text-lg font-semibold tracking-tight text-teal-900">
             {siteConfig.name}
           </Link>
-          <Link
-            href="/login"
-            className="rounded-lg bg-teal-800 px-4 py-2 text-sm font-medium text-white hover:bg-teal-900"
-          >
+          <Link href="/login" className="rounded-lg bg-teal-800 px-4 py-2 text-sm font-medium text-white hover:bg-teal-900">
             Buat rencanamu
           </Link>
         </div>
       </header>
 
       <main className="mx-auto max-w-6xl space-y-8 px-4 py-8">
-        <div className="space-y-3">
-          <div className="flex flex-wrap items-center gap-3">
-            <h1 className="text-3xl font-semibold tracking-tight text-neutral-900">
-              {trip.title}
-            </h1>
-            <TripStatusBadge status={trip.status} />
-          </div>
-          <div className="flex flex-wrap items-center gap-x-6 gap-y-2 text-sm text-neutral-600">
-            <span className="inline-flex items-center gap-2">
-              <MapPin className="size-4 text-neutral-400" />
+        <PlacePhoto kind="destination" name={trip.destination} showCredit className="h-56 w-full rounded-2xl sm:h-72" iconClassName="size-14">
+          <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
+          <div className="absolute inset-x-0 bottom-0 space-y-2 p-6">
+            <div className="flex flex-wrap items-center gap-3">
+              <h1 className="text-2xl font-semibold tracking-tight text-white sm:text-4xl">{trip.title}</h1>
+              <TripStatusBadge status={trip.status} />
+            </div>
+            <p className="flex items-center gap-2 text-white/90">
+              <MapPin className="size-4" />
               {trip.destination}
-            </span>
+            </p>
+          </div>
+        </PlacePhoto>
+
+        <div className="space-y-3">
+          <div className="flex flex-wrap items-center gap-x-6 gap-y-2 text-sm text-neutral-600">
             <span className="inline-flex items-center gap-2">
               <CalendarDays className="size-4 text-neutral-400" />
               {formatDateID(trip.startDate)} – {formatDateID(trip.endDate)}
@@ -71,23 +66,16 @@ export default async function SharePage({ params }: SharePageProps) {
               <Users className="size-4 text-neutral-400" />
               {trip.travelers} orang
             </span>
+            <span>Dibagikan oleh {trip.ownerName}</span>
           </div>
-          <p className="text-sm text-neutral-500">
-            Dibagikan oleh {trip.ownerName}
-          </p>
-          {trip.description ? (
-            <p className="max-w-3xl whitespace-pre-line text-neutral-600">
-              {trip.description}
-            </p>
-          ) : null}
+          {trip.description ? <p className="max-w-3xl whitespace-pre-line text-neutral-600">{trip.description}</p> : null}
         </div>
 
         <PublicTripView days={trip.days} />
       </main>
 
       <footer className="border-t border-neutral-200 bg-white py-6 text-center text-xs text-neutral-400">
-        {siteConfig.name} · {siteConfig.tagline} · Peta © OpenStreetMap
-        contributors
+        {siteConfig.name} · {siteConfig.tagline} · Peta © OpenStreetMap contributors · Foto dari Wikipedia/Wikimedia Commons
       </footer>
     </div>
   );

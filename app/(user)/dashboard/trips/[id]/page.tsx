@@ -4,6 +4,8 @@ import { requirePageUser } from "@/lib/permissions";
 import { loadTripOrNotFound } from "@/lib/page-helpers";
 import { TripStatusBadge } from "@/components/fragment/trip-status-badge";
 import { DeleteTripButton } from "@/components/fragment/delete-trip-button";
+import { ShareButton } from "@/components/fragment/share-button";
+import { PlacePhoto } from "@/components/fragment/place-photo";
 import { formatIDR } from "@/utils/format";
 import { formatDateID, formatLongDateID } from "@/utils/date";
 
@@ -30,43 +32,53 @@ export default async function TripDetailPage({ params }: TripDetailPageProps) {
         ← Semua perjalanan
       </Link>
 
-      <div className="flex flex-wrap items-start justify-between gap-4">
-        <div className="space-y-2">
+      <PlacePhoto
+        kind="destination"
+        name={trip.destination}
+        src={trip.coverImage || null}
+        showCredit
+        className="h-56 w-full rounded-2xl sm:h-72"
+        iconClassName="size-14"
+      >
+        <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
+        <div className="absolute inset-x-0 bottom-0 space-y-2 p-6">
           <div className="flex flex-wrap items-center gap-3">
-            <h1 className="text-2xl font-semibold tracking-tight text-neutral-900">{trip.title}</h1>
+            <h1 className="text-2xl font-semibold tracking-tight text-white sm:text-3xl">{trip.title}</h1>
             <TripStatusBadge status={trip.status} />
           </div>
-          <p className="flex items-center gap-2 text-neutral-600">
-            <MapPin className="size-4 text-neutral-400" />
+          <p className="flex items-center gap-2 text-white/90">
+            <MapPin className="size-4" />
             {trip.destination}
           </p>
         </div>
-        <div className="flex items-start gap-2">
+      </PlacePhoto>
+
+      <div className="flex flex-wrap items-start gap-2">
+        <Link
+          href={`/dashboard/trips/${trip.id}/planner`}
+          className="inline-flex items-center gap-2 rounded-lg bg-teal-800 px-3 py-1.5 text-sm font-medium text-white hover:bg-teal-900"
+        >
+          <Route className="size-4" />
+          Planner
+        </Link>
+        <Link
+          href={`/dashboard/trips/${trip.id}/budget`}
+          className="inline-flex items-center gap-2 rounded-lg border border-neutral-200 bg-white px-3 py-1.5 text-sm font-medium text-neutral-700 hover:bg-neutral-50"
+        >
+          <Wallet className="size-4" />
+          Budget
+        </Link>
+        {trip.isOwner ? <ShareButton tripId={trip.id} /> : null}
+        {trip.canEdit ? (
           <Link
-            href={`/dashboard/trips/${trip.id}/planner`}
-            className="inline-flex items-center gap-2 rounded-lg bg-teal-800 px-3 py-1.5 text-sm font-medium text-white hover:bg-teal-900"
-          >
-            <Route className="size-4" />
-            Planner
-          </Link>
-          <Link
-            href={`/dashboard/trips/${trip.id}/budget`}
+            href={`/dashboard/trips/${trip.id}/edit`}
             className="inline-flex items-center gap-2 rounded-lg border border-neutral-200 bg-white px-3 py-1.5 text-sm font-medium text-neutral-700 hover:bg-neutral-50"
           >
-            <Wallet className="size-4" />
-            Budget
+            <Pencil className="size-4" />
+            Edit
           </Link>
-          {trip.canEdit ? (
-            <Link
-              href={`/dashboard/trips/${trip.id}/edit`}
-              className="inline-flex items-center gap-2 rounded-lg border border-neutral-200 bg-white px-3 py-1.5 text-sm font-medium text-neutral-700 hover:bg-neutral-50"
-            >
-              <Pencil className="size-4" />
-              Edit
-            </Link>
-          ) : null}
-          {trip.isOwner ? <DeleteTripButton tripId={trip.id} title={trip.title} /> : null}
-        </div>
+        ) : null}
+        {trip.isOwner ? <DeleteTripButton tripId={trip.id} title={trip.title} /> : null}
       </div>
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">

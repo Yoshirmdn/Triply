@@ -50,3 +50,9 @@ export type ItineraryItemDTO = {
   notes: string | null;
   place: SavedPlaceDTO | null;
 };
+
+export type PlacePhotoDTO = {
+  url: string;
+  title: string;
+  pageUrl: string;
+};

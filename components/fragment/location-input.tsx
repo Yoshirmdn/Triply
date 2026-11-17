@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { MapPin } from "lucide-react";
+import { PlacePhoto } from "@/components/fragment/place-photo";
 import { apiGet } from "@/lib/api-client";
 import { cn } from "@/lib/utils";
 import type { PlaceSuggestionDTO } from "@/@type/place";
@@ -81,12 +82,15 @@ export function LocationInput({
                   setSuggestions([]);
                   onSelect?.(suggestion, label);
                 }}
-                className="block w-full px-3 py-2 text-left hover:bg-neutral-50"
+                className="flex w-full items-center gap-3 px-3 py-2 text-left hover:bg-neutral-50"
               >
-                <span className="block text-sm font-medium text-neutral-900">{suggestion.primaryText}</span>
-                {suggestion.secondaryText ? (
-                  <span className="block text-xs text-neutral-500">{suggestion.secondaryText}</span>
-                ) : null}
+                <PlacePhoto kind="destination" name={suggestion.primaryText} className="size-10 shrink-0 rounded-lg" iconClassName="size-4" />
+                <span className="min-w-0">
+                  <span className="block truncate text-sm font-medium text-neutral-900">{suggestion.primaryText}</span>
+                  {suggestion.secondaryText ? (
+                    <span className="block truncate text-xs text-neutral-500">{suggestion.secondaryText}</span>
+                  ) : null}
+                </span>
               </button>
             </li>
           ))}

@@ -81,3 +81,10 @@ export const routeQuerySchema = z.object({
   dayId: z.uuid(),
   mode: z.enum(["drive", "motorcycle", "bicycle", "walk"]).default("drive"),
 });
+
+export const photoQuerySchema = z.object({
+  name: z.string().trim().min(1).max(160),
+  lat: z.coerce.number().min(-90).max(90).optional(),
+  lng: z.coerce.number().min(-180).max(180).optional(),
+  kind: z.enum(["place", "destination"]).default("place"),
+});

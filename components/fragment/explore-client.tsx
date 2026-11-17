@@ -225,8 +225,9 @@ export function ExploreClient({ initialQuery = "" }: { initialQuery?: string }) 
         </a>{" "}
         ·{" "}
         <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener noreferrer" className="underline">
-          © OpenStreetMap contributors
-        </a>
+                    © OpenStreetMap contributors
+        </a>{" "}
+        · Foto dari Wikipedia/Wikimedia Commons
       </p>
     </div>
   );

@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { CalendarDays, MapPin, Users } from "lucide-react";
+import { PlacePhoto } from "@/components/fragment/place-photo";
 import { TripStatusBadge } from "@/components/fragment/trip-status-badge";
 import { formatIDR } from "@/utils/format";
 import { formatDateID } from "@/utils/date";
@@ -9,23 +10,28 @@ export function TripCard({ trip }: { trip: TripDTO }) {
   return (
     <Link
       href={`/dashboard/trips/${trip.id}`}
-      className="group flex flex-col overflow-hidden rounded-xl border border-neutral-200 bg-white transition hover:border-teal-300 hover:shadow-sm"
+      className="group flex flex-col overflow-hidden rounded-2xl border border-neutral-200 bg-white shadow-sm transition hover:border-teal-300 hover:shadow-md"
     >
-      {trip.coverImage ? (
-        <img src={trip.coverImage} alt={trip.title} className="h-36 w-full object-cover" />
-      ) : (
-        <div className="h-2 bg-teal-800" />
-      )}
+      <PlacePhoto
+        kind="destination"
+        name={trip.destination}
+        src={trip.coverImage || null}
+        showCredit
+        className="h-40 w-full"
+        iconClassName="size-10"
+      >
+        <div className="absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-t from-black/50 to-transparent" />
+        <span className="absolute bottom-3 left-4 flex items-center gap-1.5 text-sm font-medium text-white">
+          <MapPin className="size-4" />
+          <span className="line-clamp-1">{trip.destination}</span>
+        </span>
+      </PlacePhoto>
       <div className="flex flex-1 flex-col gap-3 p-5">
         <div className="flex items-start justify-between gap-3">
           <h3 className="line-clamp-2 font-semibold text-neutral-900 group-hover:text-teal-900">{trip.title}</h3>
           <TripStatusBadge status={trip.status} />
         </div>
         <div className="space-y-1.5 text-sm text-neutral-600">
-          <p className="flex items-center gap-2">
-            <MapPin className="size-4 text-neutral-400" />
-            <span className="truncate">{trip.destination}</span>
-          </p>
           <p className="flex items-center gap-2">
             <CalendarDays className="size-4 text-neutral-400" />
             {formatDateID(trip.startDate)} – {formatDateID(trip.endDate)}
