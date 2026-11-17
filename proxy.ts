@@ -10,11 +10,17 @@ export default auth((request) => {
 
   if (!session?.user) {
     const loginUrl = new URL("/login", nextUrl);
-    loginUrl.searchParams.set("callbackUrl", nextUrl.pathname);
+    loginUrl.searchParams.set(
+      "callbackUrl",
+      `${nextUrl.pathname}${nextUrl.search}`,
+    );
     return NextResponse.redirect(loginUrl);
   }
 
-  if (nextUrl.pathname.startsWith("/admin") && session.user.role !== "SUPER_ADMIN") {
+  if (
+    nextUrl.pathname.startsWith("/admin") &&
+    session.user.role !== "SUPER_ADMIN"
+  ) {
     return NextResponse.redirect(new URL("/dashboard", nextUrl));
   }
 

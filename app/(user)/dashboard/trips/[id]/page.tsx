@@ -1,5 +1,12 @@
 import Link from "next/link";
-import { CalendarDays, MapPin, Pencil, Route, Users, Wallet } from "lucide-react";
+import {
+  CalendarDays,
+  MapPin,
+  Pencil,
+  Route,
+  Users,
+  Wallet,
+} from "lucide-react";
 import { requirePageUser } from "@/lib/permissions";
 import { loadTripOrNotFound } from "@/lib/page-helpers";
 import { TripStatusBadge } from "@/components/fragment/trip-status-badge";
@@ -8,6 +15,7 @@ import { ShareButton } from "@/components/fragment/share-button";
 import { PlacePhoto } from "@/components/fragment/place-photo";
 import { formatIDR } from "@/utils/format";
 import { formatDateID, formatLongDateID } from "@/utils/date";
+import { TravelLinks } from "@/components/fragment/travel-links";
 
 type TripDetailPageProps = {
   params: Promise<{ id: string }>;
@@ -28,7 +36,10 @@ export default async function TripDetailPage({ params }: TripDetailPageProps) {
 
   return (
     <div className="space-y-8">
-      <Link href="/dashboard/trips" className="text-sm text-neutral-500 hover:text-neutral-900">
+      <Link
+        href="/dashboard/trips"
+        className="text-sm text-neutral-500 hover:text-neutral-900"
+      >
         ← Semua perjalanan
       </Link>
 
@@ -43,7 +54,9 @@ export default async function TripDetailPage({ params }: TripDetailPageProps) {
         <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
         <div className="absolute inset-x-0 bottom-0 space-y-2 p-6">
           <div className="flex flex-wrap items-center gap-3">
-            <h1 className="text-2xl font-semibold tracking-tight text-white sm:text-3xl">{trip.title}</h1>
+            <h1 className="text-2xl font-semibold tracking-tight text-white sm:text-3xl">
+              {trip.title}
+            </h1>
             <TripStatusBadge status={trip.status} />
           </div>
           <p className="flex items-center gap-2 text-white/90">
@@ -78,7 +91,9 @@ export default async function TripDetailPage({ params }: TripDetailPageProps) {
             Edit
           </Link>
         ) : null}
-        {trip.isOwner ? <DeleteTripButton tripId={trip.id} title={trip.title} /> : null}
+        {trip.isOwner ? (
+          <DeleteTripButton tripId={trip.id} title={trip.title} />
+        ) : null}
       </div>
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
@@ -90,47 +105,76 @@ export default async function TripDetailPage({ params }: TripDetailPageProps) {
           <p className="mt-2 text-sm font-medium text-neutral-900">
             {formatDateID(trip.startDate)} – {formatDateID(trip.endDate)}
           </p>
-          <p className="mt-1 text-xs text-neutral-400">{trip.days.length} hari</p>
+          <p className="mt-1 text-xs text-neutral-400">
+            {trip.days.length} hari
+          </p>
         </div>
         <div className="rounded-xl border border-neutral-200 bg-white p-5">
           <p className="flex items-center gap-2 text-sm text-neutral-500">
             <Users className="size-4" />
             Traveler
           </p>
-          <p className="mt-2 text-sm font-medium text-neutral-900">{trip.travelers} orang</p>
+          <p className="mt-2 text-sm font-medium text-neutral-900">
+            {trip.travelers} orang
+          </p>
         </div>
         <div className="rounded-xl border border-neutral-200 bg-white p-5">
           <p className="flex items-center gap-2 text-sm text-neutral-500">
             <Wallet className="size-4" />
             Estimasi budget
           </p>
-          <p className="mt-2 text-sm font-medium text-neutral-900">{formatIDR(trip.budget)}</p>
+          <p className="mt-2 text-sm font-medium text-neutral-900">
+            {formatIDR(trip.budget)}
+          </p>
         </div>
         <div className="rounded-xl border border-neutral-200 bg-white p-5">
           <p className="text-sm text-neutral-500">Itinerary</p>
-          <p className="mt-2 text-sm font-medium text-neutral-900">{plannedItems} destinasi</p>
+          <p className="mt-2 text-sm font-medium text-neutral-900">
+            {plannedItems} destinasi
+          </p>
         </div>
       </div>
-
+      <TravelLinks
+        tripId={trip.id}
+        destination={trip.destination}
+        startDate={trip.startDate}
+        endDate={trip.endDate}
+        travelers={trip.travelers}
+      />
       {trip.description ? (
         <section className="space-y-2">
           <h2 className="text-lg font-semibold text-neutral-900">Deskripsi</h2>
-          <p className="whitespace-pre-line text-sm leading-relaxed text-neutral-600">{trip.description}</p>
+          <p className="whitespace-pre-line text-sm leading-relaxed text-neutral-600">
+            {trip.description}
+          </p>
         </section>
       ) : null}
 
       <section className="space-y-3">
-        <h2 className="text-lg font-semibold text-neutral-900">Ringkasan hari</h2>
+        <h2 className="text-lg font-semibold text-neutral-900">
+          Ringkasan hari
+        </h2>
         <ul className="divide-y divide-neutral-200 overflow-hidden rounded-xl border border-neutral-200 bg-white">
           {trip.days.map((day) => (
-            <li key={day.id} className="flex items-center justify-between gap-4 px-5 py-3 text-sm">
-              <span className="font-medium text-neutral-900">Hari {day.dayNumber}</span>
-              <span className="flex-1 text-neutral-600">{formatLongDateID(day.date)}</span>
-              <span className="text-neutral-400">{day.itemCount} destinasi</span>
+            <li
+              key={day.id}
+              className="flex items-center justify-between gap-4 px-5 py-3 text-sm"
+            >
+              <span className="font-medium text-neutral-900">
+                Hari {day.dayNumber}
+              </span>
+              <span className="flex-1 text-neutral-600">
+                {formatLongDateID(day.date)}
+              </span>
+              <span className="text-neutral-400">
+                {day.itemCount} destinasi
+              </span>
             </li>
           ))}
         </ul>
-        <p className="text-xs text-neutral-400">Catat pengeluaran dan pantau sisa budget di halaman Budget.</p>
+        <p className="text-xs text-neutral-400">
+          Catat pengeluaran dan pantau sisa budget di halaman Budget.
+        </p>
       </section>
     </div>
   );

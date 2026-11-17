@@ -28,14 +28,14 @@ export const PLACE_CATEGORY_GEOAPIFY: Record<
   Exclude<PlaceCategoryValue, "OTHER">,
   string
 > = {
-  ATTRACTION: "tourism",
+  ATTRACTION: "tourism,heritage",
   RESTAURANT: "catering.restaurant",
   CAFE: "catering.cafe",
-  HOTEL: "accommodation.hotel",
+  HOTEL: "accommodation",
   SHOPPING: "commercial.shopping_mall",
   MUSEUM: "entertainment.museum",
-  NATURE: "natural,leisure.park",
-  ENTERTAINMENT: "entertainment.zoo,entertainment.theme_park",
+  NATURE: "beach,national_park,natural.mountain,leisure.park",
+  ENTERTAINMENT: "entertainment",
 };
 
 export const FILTERABLE_CATEGORIES = PLACE_CATEGORIES.filter(
@@ -47,3 +47,12 @@ export const ALL_GEOAPIFY_CATEGORIES = FILTERABLE_CATEGORIES.map(
 ).join(",");
 
 export const PLACE_PROVIDER = "geoapify";
+
+export const SEARCH_RADIUS_OPTIONS = [
+  { value: 5000, label: "5 km" },
+  { value: 15000, label: "15 km" },
+  { value: 30000, label: "30 km" },
+  { value: 50000, label: "50 km" },
+] as const;
+
+export const DEFAULT_SEARCH_RADIUS = 15000;

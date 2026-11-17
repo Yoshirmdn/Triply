@@ -54,11 +54,12 @@ export async function GET(request: NextRequest) {
       longitude = center.longitude;
     }
 
-    const places = await searchPlaces({
+    const { places, hasMore } = await searchPlaces({
       lat: latitude,
       lng: longitude,
       radius: parsed.data.radius,
       limit: parsed.data.limit,
+      page: parsed.data.page,
       category: parsed.data.category,
       name: parsed.data.name,
     });
@@ -88,7 +89,12 @@ export async function GET(request: NextRequest) {
         ...place,
         isFavorite: favoriteIds.has(place.placeId),
       })),
-      meta: { total: places.length },
+      meta: {
+        total: places.length,
+        page: parsed.data.page,
+        hasMore,
+        center: { latitude, longitude },
+      },
     });
   } catch (error) {
     if (error instanceof PlacesApiError) {

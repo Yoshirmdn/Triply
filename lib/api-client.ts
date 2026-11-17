@@ -1,4 +1,4 @@
-import type { ApiResponse } from "@/@type/api";
+import type { ApiMeta, ApiResponse, ApiSuccess } from "@/@type/api";
 
 const BASE_URL = "/api/v1";
 
@@ -26,11 +26,11 @@ function guardHeader() {
   return `Basic ${btoa(`${username}:${password}`)}`;
 }
 
-async function request<T>(
+async function send<T>(
   method: string,
   path: string,
   options: RequestOptions = {},
-): Promise<T> {
+): Promise<ApiSuccess<T>> {
   const headers: Record<string, string> = {};
   if (options.body !== undefined) headers["Content-Type"] = "application/json";
   if (options.guard) headers.Authorization = guardHeader();
@@ -53,7 +53,23 @@ async function request<T>(
     );
   }
 
-  return json.data;
+  return json;
+}
+
+async function request<T>(
+  method: string,
+  path: string,
+  options: RequestOptions = {},
+): Promise<T> {
+  return (await send<T>(method, path, options)).data;
+}
+
+export async function apiGetWithMeta<T>(
+  path: string,
+  options?: Omit<RequestOptions, "body">,
+): Promise<{ data: T; meta: ApiMeta }> {
+  const json = await send<T>("GET", path, options);
+  return { data: json.data, meta: json.meta ?? {} };
 }
 
 export function apiGet<T>(

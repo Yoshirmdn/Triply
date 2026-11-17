@@ -2,6 +2,8 @@ export type ApiMeta = {
   page?: number;
   pageSize?: number;
   total?: number;
+  hasMore?: boolean;
+  center?: { latitude: number; longitude: number };
 };
 
 export type ApiSuccess<T> = {
