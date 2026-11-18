@@ -1,21 +1,25 @@
 import Link from "next/link";
 import {
   CalendarDays,
+  CalendarPlus,
   MapPin,
   Pencil,
+  Printer,
   Route,
   Users,
   Wallet,
 } from "lucide-react";
 import { requirePageUser } from "@/lib/permissions";
 import { loadTripOrNotFound } from "@/lib/page-helpers";
+import { listTripPeople } from "@/lib/member-helpers";
 import { TripStatusBadge } from "@/components/fragment/trip-status-badge";
 import { DeleteTripButton } from "@/components/fragment/delete-trip-button";
 import { ShareButton } from "@/components/fragment/share-button";
 import { PlacePhoto } from "@/components/fragment/place-photo";
+import { TravelLinks } from "@/components/fragment/travel-links";
+import { TripMembers } from "@/components/fragment/trip-members";
 import { formatIDR } from "@/utils/format";
 import { formatDateID, formatLongDateID } from "@/utils/date";
-import { TravelLinks } from "@/components/fragment/travel-links";
 
 type TripDetailPageProps = {
   params: Promise<{ id: string }>;
@@ -33,6 +37,10 @@ export default async function TripDetailPage({ params }: TripDetailPageProps) {
   const { id } = await params;
   const trip = await loadTripOrNotFound(actor, id);
   const plannedItems = trip.days.reduce((sum, day) => sum + day.itemCount, 0);
+  const allPeople = await listTripPeople(trip.id);
+  const people = trip.isOwner
+    ? allPeople
+    : allPeople.filter((person) => person.kind !== "invite");
 
   return (
     <div className="space-y-8">
@@ -81,6 +89,21 @@ export default async function TripDetailPage({ params }: TripDetailPageProps) {
           <Wallet className="size-4" />
           Budget
         </Link>
+        <Link
+          href={`/dashboard/trips/${trip.id}/print`}
+          className="inline-flex items-center gap-2 rounded-lg border border-neutral-200 bg-white px-3 py-1.5 text-sm font-medium text-neutral-700 hover:bg-neutral-50"
+        >
+          <Printer className="size-4" />
+          Cetak
+        </Link>
+        <a
+          href={`/api/v1/trips/${trip.id}/calendar`}
+          download
+          className="inline-flex items-center gap-2 rounded-lg border border-neutral-200 bg-white px-3 py-1.5 text-sm font-medium text-neutral-700 hover:bg-neutral-50"
+        >
+          <CalendarPlus className="size-4" />
+          Kalender
+        </a>
         {trip.isOwner ? <ShareButton tripId={trip.id} /> : null}
         {trip.canEdit ? (
           <Link
@@ -134,6 +157,14 @@ export default async function TripDetailPage({ params }: TripDetailPageProps) {
           </p>
         </div>
       </div>
+
+      <TripMembers
+        tripId={trip.id}
+        currentUserId={actor.id}
+        initialPeople={people}
+        isOwner={trip.isOwner}
+      />
+
       <TravelLinks
         tripId={trip.id}
         destination={trip.destination}
@@ -141,6 +172,7 @@ export default async function TripDetailPage({ params }: TripDetailPageProps) {
         endDate={trip.endDate}
         travelers={trip.travelers}
       />
+
       {trip.description ? (
         <section className="space-y-2">
           <h2 className="text-lg font-semibold text-neutral-900">Deskripsi</h2>

@@ -20,6 +20,7 @@ import {
 } from "@/data/landing";
 import { resolveActor } from "@/lib/permissions";
 import { PlacePhoto } from "@/components/fragment/place-photo";
+import { LandingTemplates } from "@/components/fragment/landing-templates";
 
 const services = [
   { icon: Compass, label: "Jelajahi", href: "/dashboard/explore" },
@@ -269,6 +270,7 @@ export default async function Home() {
           </div>
         </section>
 
+        <LandingTemplates />
         <section className="mx-auto max-w-6xl px-4 pt-20">
           <div className="grid gap-4 md:grid-cols-3">
             {promos.map((promo) => (

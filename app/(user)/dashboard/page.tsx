@@ -15,20 +15,28 @@ export default async function DashboardPage() {
   const base = accessWhere(actor);
   const today = todayUTC();
 
-  const [totalTrips, upcomingTrips, completedTrips, budget, recent] = await Promise.all([
-    prisma.trip.count({ where: base }),
-    prisma.trip.count({
-      where: { ...base, startDate: { gte: today }, status: { in: ["PLANNING", "UPCOMING"] } },
-    }),
-    prisma.trip.count({ where: { ...base, status: "COMPLETED" } }),
-    prisma.trip.aggregate({ where: { ...base, status: { not: "CANCELLED" } }, _sum: { budget: true } }),
-    prisma.trip.findMany({
-      where: base,
-      orderBy: { createdAt: "desc" },
-      take: 5,
-      include: { members: memberSelect(actor.id) },
-    }),
-  ]);
+  const [totalTrips, upcomingTrips, completedTrips, budget, recent] =
+    await Promise.all([
+      prisma.trip.count({ where: base }),
+      prisma.trip.count({
+        where: {
+          ...base,
+          startDate: { gte: today },
+          status: { in: ["PLANNING", "UPCOMING"] },
+        },
+      }),
+      prisma.trip.count({ where: { ...base, status: "COMPLETED" } }),
+      prisma.trip.aggregate({
+        where: { ...base, status: { not: "CANCELLED" } },
+        _sum: { budget: true },
+      }),
+      prisma.trip.findMany({
+        where: base,
+        orderBy: { createdAt: "desc" },
+        take: 5,
+        include: { members: memberSelect(actor.id) },
+      }),
+    ]);
 
   const data = {
     totalTrips,
@@ -43,8 +51,12 @@ export default async function DashboardPage() {
     <div className="space-y-8">
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-semibold tracking-tight text-neutral-900">Halo, {firstName}</h1>
-          <p className="mt-1 text-sm text-neutral-500">Siap merencanakan perjalanan berikutnya?</p>
+          <h1 className="text-2xl font-semibold tracking-tight text-neutral-900">
+            Halo, {firstName}
+          </h1>
+          <p className="mt-1 text-sm text-neutral-500">
+            Siap merencanakan perjalanan berikutnya?
+          </p>
         </div>
         <Link
           href="/dashboard/trips/new"
@@ -59,13 +71,22 @@ export default async function DashboardPage() {
         <StatCard label="Total perjalanan" value={data.totalTrips} />
         <StatCard label="Akan datang" value={data.upcomingTrips} />
         <StatCard label="Selesai" value={data.completedTrips} />
-        <StatCard label="Total estimasi budget" value={formatIDR(data.totalBudget)} hint="Tidak termasuk yang dibatalkan" />
+        <StatCard
+          label="Total estimasi budget"
+          value={formatIDR(data.totalBudget)}
+          hint="Tidak termasuk yang dibatalkan"
+        />
       </div>
 
       <section className="space-y-4">
         <div className="flex items-center justify-between">
-          <h2 className="text-lg font-semibold text-neutral-900">Perjalanan terbaru</h2>
-          <Link href="/dashboard/trips" className="text-sm font-medium text-teal-800 hover:underline">
+          <h2 className="text-lg font-semibold text-neutral-900">
+            Perjalanan terbaru
+          </h2>
+          <Link
+            href="/dashboard/trips"
+            className="text-sm font-medium text-teal-800 hover:underline"
+          >
             Lihat semua
           </Link>
         </div>
@@ -73,7 +94,9 @@ export default async function DashboardPage() {
         {data.recentTrips.length === 0 ? (
           <div className="rounded-xl border border-dashed border-neutral-300 bg-white p-10 text-center">
             <p className="font-medium text-neutral-900">Belum ada perjalanan</p>
-            <p className="mt-1 text-sm text-neutral-500">Mulai dengan membuat rencana perjalanan pertamamu.</p>
+            <p className="mt-1 text-sm text-neutral-500">
+              Mulai dengan membuat rencana perjalanan pertamamu.
+            </p>
             <Link
               href="/dashboard/trips/new"
               className="mt-4 inline-flex rounded-lg bg-teal-800 px-4 py-2 text-sm font-medium text-white hover:bg-teal-900"

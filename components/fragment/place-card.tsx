@@ -1,3 +1,5 @@
+"use client";
+
 import { MapPin } from "lucide-react";
 import { AddToTripDialog } from "@/components/fragment/add-to-trip-dialog";
 import { FavoriteButton } from "@/components/fragment/favorite-button";
@@ -38,7 +40,9 @@ export function PlaceCard({ place, onFavoriteChange }: PlaceCardProps) {
 
       <div className="flex flex-1 flex-col gap-3 p-4">
         <div className="flex items-start justify-between gap-3">
-          <h3 className="line-clamp-2 font-semibold text-neutral-900">{place.name}</h3>
+          <h3 className="line-clamp-2 font-semibold text-neutral-900">
+            {place.name}
+          </h3>
           <FavoriteButton
             place={input}
             initialFavorite={place.isFavorite ?? false}

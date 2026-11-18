@@ -2,6 +2,7 @@ import NextAuth from "next-auth";
 import { PrismaAdapter } from "@auth/prisma-adapter";
 import { prisma } from "@/lib/prisma";
 import { authConfig } from "@/lib/auth.config";
+import { acceptPendingInvites } from "@/lib/member-helpers";
 
 type AdapterClient = Parameters<typeof PrismaAdapter>[0];
 
@@ -33,7 +34,8 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     },
     async session({ session, token }) {
       if (typeof token.id === "string") session.user.id = token.id;
-      if (token.role === "SUPER_ADMIN" || token.role === "USER") session.user.role = token.role;
+      if (token.role === "SUPER_ADMIN" || token.role === "USER")
+        session.user.role = token.role;
       return session;
     },
   },
@@ -57,6 +59,13 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           description: `Login: ${user.email ?? "-"}`,
         },
       });
+      if (user.email) {
+        try {
+          await acceptPendingInvites(user.id, user.email);
+        } catch (error) {
+          console.error(error);
+        }
+      }
     },
   },
 });
