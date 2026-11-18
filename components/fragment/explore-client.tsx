@@ -217,8 +217,9 @@ export function ExploreClient({
           void runSearch(currentOptions());
         }}
       >
-        <div className="flex flex-wrap gap-2">
-          <div className="min-w-60 flex-1">
+        <div className="grid gap-3 md:grid-cols-2">
+          <div className="space-y-1">
+            <span className="text-sm font-medium text-neutral-700">Lokasi</span>
             <LocationInput
               value={query}
               onValueChange={(value) => {
@@ -226,38 +227,27 @@ export function ExploreClient({
                 setCenter(null);
               }}
               onSelect={pickSuggestion}
-              placeholder="Masukkan lokasi, mis. Ubud, Bali"
+              placeholder="Kota atau area, mis. Ubud, Bali"
             />
           </div>
-          <button
-            type="button"
-            onClick={locateMe}
-            disabled={locating}
-            className="inline-flex items-center gap-2 rounded-lg border border-neutral-300 bg-white px-3 py-2.5 text-sm font-medium text-neutral-800 transition hover:bg-neutral-50 disabled:opacity-60"
-          >
-            <LocateFixed className="size-4" />
-            {locating ? "Mencari..." : "Lokasi saya"}
-          </button>
-          <button
-            type="submit"
-            disabled={loading || query.trim().length < 2}
-            className="rounded-lg bg-teal-800 px-4 py-2.5 text-sm font-medium text-white transition hover:bg-teal-900 disabled:opacity-50"
-          >
-            Cari
-          </button>
+          <label className="block space-y-1">
+            <span className="text-sm font-medium text-neutral-700">
+              Nama tempat{" "}
+              <span className="font-normal text-neutral-400">(opsional)</span>
+            </span>
+            <span className="relative block">
+              <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-neutral-400" />
+              <input
+                value={nameFilter}
+                onChange={(event) => setNameFilter(event.target.value)}
+                placeholder="Filter berdasarkan nama, mis. Pantai Kuta"
+                className="w-full rounded-lg border border-neutral-300 bg-white py-2.5 pl-9 pr-3 text-sm"
+              />
+            </span>
+          </label>
         </div>
 
-        <div className="flex flex-wrap gap-2">
-          <label className="relative min-w-60 flex-1">
-            <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-neutral-400" />
-            <span className="sr-only">Cari nama tempat</span>
-            <input
-              value={nameFilter}
-              onChange={(event) => setNameFilter(event.target.value)}
-              placeholder="Cari nama tempat (opsional), mis. Pantai Kuta"
-              className="w-full rounded-lg border border-neutral-300 bg-white py-2.5 pl-9 pr-3 text-sm"
-            />
-          </label>
+        <div className="flex flex-wrap items-center gap-2">
           <label className="flex items-center gap-2 text-sm text-neutral-600">
             Radius
             <select
@@ -272,6 +262,22 @@ export function ExploreClient({
               ))}
             </select>
           </label>
+          <button
+            type="button"
+            onClick={locateMe}
+            disabled={locating}
+            className="inline-flex items-center gap-2 rounded-lg border border-neutral-300 bg-white px-3 py-2.5 text-sm font-medium text-neutral-800 transition hover:bg-neutral-50 disabled:opacity-60"
+          >
+            <LocateFixed className="size-4" />
+            {locating ? "Mencari..." : "Lokasi saya"}
+          </button>
+          <button
+            type="submit"
+            disabled={loading || query.trim().length < 2}
+            className="rounded-lg bg-teal-800 px-6 py-2.5 text-sm font-medium text-white transition hover:bg-teal-900 disabled:opacity-50"
+          >
+            Cari
+          </button>
         </div>
       </form>
 

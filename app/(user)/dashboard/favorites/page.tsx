@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { requirePageUser } from "@/lib/permissions";
 import { prisma } from "@/lib/prisma";
+import { attachStats } from "@/lib/place-stats";
 import { PlaceCard } from "@/components/fragment/place-card";
 
 export const metadata = { title: "Favorit" };
@@ -12,6 +13,16 @@ export default async function FavoritesPage() {
     orderBy: { createdAt: "desc" },
     include: { place: true },
   });
+  const places = await attachStats(
+    favorites.map((favorite) => ({
+      placeId: favorite.place.providerPlaceId,
+      name: favorite.place.name,
+      address: favorite.place.address,
+      latitude: favorite.place.latitude,
+      longitude: favorite.place.longitude,
+      category: favorite.place.category,
+    })),
+  );
 
   return (
     <div className="space-y-6">
@@ -34,18 +45,10 @@ export default async function FavoritesPage() {
         </div>
       ) : (
         <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-          {favorites.map((favorite) => (
+          {places.map((place) => (
             <PlaceCard
-              key={favorite.id}
-              place={{
-                placeId: favorite.place.providerPlaceId,
-                name: favorite.place.name,
-                address: favorite.place.address,
-                latitude: favorite.place.latitude,
-                longitude: favorite.place.longitude,
-                category: favorite.place.category,
-                isFavorite: true,
-              }}
+              key={place.placeId}
+              place={{ ...place, isFavorite: true }}
             />
           ))}
         </div>

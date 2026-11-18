@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { resolveActor } from "@/lib/permissions";
 import { prisma } from "@/lib/prisma";
+import { attachStats } from "@/lib/place-stats";
 import { PlacesApiError, geocodeFirst, searchPlaces } from "@/lib/geoapify";
 import { searchPlacesQuerySchema } from "@/lib/validations/place.schema";
 import { BASIC_AUTH_CHALLENGE, validateBasicAuth } from "@/utils/auth";
@@ -64,6 +65,8 @@ export async function GET(request: NextRequest) {
       name: parsed.data.name,
     });
 
+    const enriched = await attachStats(places);
+
     let favoriteIds = new Set<string>();
     if (actor && places.length > 0) {
       const favorites = await prisma.favorite.findMany({
@@ -85,7 +88,7 @@ export async function GET(request: NextRequest) {
       success: true,
       status: 200,
       message: "Data fetched successfully!",
-      data: places.map((place) => ({
+      data: enriched.map((place) => ({
         ...place,
         isFavorite: favoriteIds.has(place.placeId),
       })),

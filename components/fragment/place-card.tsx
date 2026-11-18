@@ -1,6 +1,6 @@
 "use client";
 
-import { MapPin } from "lucide-react";
+import { ExternalLink, MapPin, Star } from "lucide-react";
 import { AddToTripDialog } from "@/components/fragment/add-to-trip-dialog";
 import { FavoriteButton } from "@/components/fragment/favorite-button";
 import { PlacePhoto } from "@/components/fragment/place-photo";
@@ -29,6 +29,7 @@ export function PlaceCard({ place, onFavoriteChange }: PlaceCardProps) {
         latitude={place.latitude}
         longitude={place.longitude}
         category={place.category}
+        src={place.stat?.photoUrl ?? null}
         showCredit
         className="h-40 w-full"
         iconClassName="size-10"
@@ -49,6 +50,36 @@ export function PlaceCard({ place, onFavoriteChange }: PlaceCardProps) {
             onChange={(value) => onFavoriteChange?.(place.placeId, value)}
           />
         </div>
+
+        {place.stat && place.stat.rating !== null ? (
+          <p className="flex flex-wrap items-center gap-x-2 gap-y-1 text-sm text-neutral-700">
+            <span className="inline-flex items-center gap-1 font-medium">
+              <Star className="size-4 fill-amber-400 text-amber-400" />
+              {place.stat.rating.toFixed(1)}
+            </span>
+            {place.stat.reviewCount !== null ? (
+              <span className="text-neutral-500">
+                ({place.stat.reviewCount.toLocaleString("id-ID")} ulasan)
+              </span>
+            ) : null}
+            {place.stat.priceRange ? (
+              <span className="text-neutral-500">
+                · {place.stat.priceRange}
+              </span>
+            ) : null}
+            {place.stat.mapsUrl ? (
+              <a
+                href={place.stat.mapsUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-1 text-xs font-medium text-teal-800 hover:underline"
+              >
+                Google Maps
+                <ExternalLink className="size-3" />
+              </a>
+            ) : null}
+          </p>
+        ) : null}
 
         {place.address ? (
           <p className="flex items-start gap-2 text-sm text-neutral-600">

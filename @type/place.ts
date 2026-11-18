@@ -1,5 +1,13 @@
 import type { PlaceCategoryValue } from "@/data/places";
 
+export type PlaceStatDTO = {
+  rating: number | null;
+  reviewCount: number | null;
+  priceRange: string | null;
+  mapsUrl: string | null;
+  photoUrl: string | null;
+};
+
 export type PlaceDTO = {
   placeId: string;
   name: string;
@@ -7,6 +15,7 @@ export type PlaceDTO = {
   latitude: number;
   longitude: number;
   category: PlaceCategoryValue;
+  stat?: PlaceStatDTO | null;
 };
 
 export type PlaceDetailDTO = PlaceDTO & {
