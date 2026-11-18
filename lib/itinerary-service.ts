@@ -1,17 +1,15 @@
 import "server-only";
 import { prisma } from "@/lib/prisma";
-import { searchPlaces } from "@/lib/geoapify";
+import { searchCatalog } from "@/lib/catalog";
 import { generateItinerary } from "@/lib/itinerary-generator";
 import { upsertPlace } from "@/lib/place-helpers";
-import {
-  PACE_ACTIVITIES,
-  type TripPaceValue,
-  type TripStyleValue,
-} from "@/data/generator";
+import { PACE_ACTIVITIES, type TripPaceValue, type TripStyleValue } from "@/data/generator";
 import type { PlaceCategoryValue } from "@/data/places";
 import type { PlaceDTO } from "@/@type/place";
 import type { GeneratedPlanDTO } from "@/@type/generator";
 import type { ApplyPlanInput } from "@/lib/validations/generator.schema";
+
+const MIN_RATING = 3.5;
 
 type BuildPlanInput = {
   latitude: number;
@@ -22,9 +20,7 @@ type BuildPlanInput = {
   pace: TripPaceValue;
 };
 
-export async function buildPlan(
-  input: BuildPlanInput,
-): Promise<GeneratedPlanDTO> {
+export async function buildPlan(input: BuildPlanInput): Promise<GeneratedPlanDTO> {
   const wanted = input.days * PACE_ACTIVITIES[input.pace];
   const main = Math.min(80, Math.max(20, wanted * 2));
   const minor = Math.max(10, Math.round(main / 2));
@@ -40,38 +36,23 @@ export async function buildPlan(
     { category: "CAFE", limit: food },
   ];
 
-  const settled = await Promise.allSettled(
+  const results = await Promise.all(
     requests.map((request) =>
-      searchPlaces({
+      searchCatalog({
         lat: input.latitude,
         lng: input.longitude,
         radius: input.radius,
         limit: request.limit,
         page: 1,
         category: request.category,
+        minRating: MIN_RATING,
       }),
     ),
   );
 
-  const places: PlaceDTO[] = [];
-  let firstError: unknown = null;
-  let succeeded = 0;
-  for (const entry of settled) {
-    if (entry.status === "fulfilled") {
-      succeeded += 1;
-      places.push(...entry.value.places);
-    } else {
-      firstError ??= entry.reason;
-    }
-  }
-  if (succeeded === 0 && firstError) throw firstError;
+  const places: PlaceDTO[] = results.flatMap((result) => result.places);
 
-  return generateItinerary({
-    places,
-    days: input.days,
-    style: input.style,
-    pace: input.pace,
-  });
+  return generateItinerary({ places, days: input.days, style: input.style, pace: input.pace });
 }
 
 export async function applyPlan(

@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { resolveActor } from "@/lib/permissions";
-import { PlacesApiError, autocompleteLocations } from "@/lib/geoapify";
+import { autocompleteLocations } from "@/lib/catalog";
 import { autocompleteQuerySchema } from "@/lib/validations/place.schema";
 import { BASIC_AUTH_CHALLENGE, validateBasicAuth } from "@/utils/auth";
 
@@ -11,10 +11,7 @@ export async function GET(request: NextRequest) {
   try {
     const { actor, inactive } = await resolveActor();
     if (inactive) {
-      return NextResponse.json(
-        { success: false, status: 403, message: "Account is inactive!" },
-        { status: 403 },
-      );
+      return NextResponse.json({ success: false, status: 403, message: "Account is inactive!" }, { status: 403 });
     }
     if (!actor && !validateBasicAuth(request)) {
       return NextResponse.json(
@@ -23,26 +20,15 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    const parsed = autocompleteQuerySchema.safeParse(
-      Object.fromEntries(request.nextUrl.searchParams),
-    );
+    const parsed = autocompleteQuerySchema.safeParse(Object.fromEntries(request.nextUrl.searchParams));
     if (!parsed.success) {
       return NextResponse.json(
-        {
-          success: false,
-          status: 400,
-          message: "Validation failed!",
-          errors: z.flattenError(parsed.error),
-        },
+        { success: false, status: 400, message: "Validation failed!", errors: z.flattenError(parsed.error) },
         { status: 400 },
       );
     }
 
-    const suggestions = await autocompleteLocations({
-      text: parsed.data.input,
-      lat: parsed.data.lat,
-      lng: parsed.data.lng,
-    });
+    const suggestions = await autocompleteLocations({ text: parsed.data.input });
 
     return NextResponse.json({
       success: true,
@@ -52,16 +38,7 @@ export async function GET(request: NextRequest) {
       meta: { total: suggestions.length },
     });
   } catch (error) {
-    if (error instanceof PlacesApiError) {
-      return NextResponse.json(
-        { success: false, status: error.status, message: error.message },
-        { status: error.status },
-      );
-    }
     console.error(error);
-    return NextResponse.json(
-      { success: false, status: 500, message: "Internal server error!" },
-      { status: 500 },
-    );
+    return NextResponse.json({ success: false, status: 500, message: "Internal server error!" }, { status: 500 });
   }
 }

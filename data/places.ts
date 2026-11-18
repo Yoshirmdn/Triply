@@ -24,29 +24,11 @@ export const PLACE_CATEGORY_LABELS: Record<PlaceCategoryValue, string> = {
   OTHER: "Lainnya",
 };
 
-export const PLACE_CATEGORY_GEOAPIFY: Record<
-  Exclude<PlaceCategoryValue, "OTHER">,
-  string
-> = {
-  ATTRACTION: "tourism,heritage",
-  RESTAURANT: "catering.restaurant",
-  CAFE: "catering.cafe",
-  HOTEL: "accommodation",
-  SHOPPING: "commercial.shopping_mall",
-  MUSEUM: "entertainment.museum",
-  NATURE: "beach,national_park,natural.mountain,leisure.park",
-  ENTERTAINMENT: "entertainment",
-};
-
 export const FILTERABLE_CATEGORIES = PLACE_CATEGORIES.filter(
   (value): value is Exclude<PlaceCategoryValue, "OTHER"> => value !== "OTHER",
 );
 
-export const ALL_GEOAPIFY_CATEGORIES = FILTERABLE_CATEGORIES.map(
-  (value) => PLACE_CATEGORY_GEOAPIFY[value],
-).join(",");
-
-export const PLACE_PROVIDER = "geoapify";
+export const PLACE_PROVIDER = "gmaps";
 
 export const SEARCH_RADIUS_OPTIONS = [
   { value: 5000, label: "5 km" },

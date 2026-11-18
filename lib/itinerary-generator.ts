@@ -51,6 +51,14 @@ function centroid(points: Coordinate[]): Coordinate {
     longitude: total.longitude / points.length,
   };
 }
+function popularity(place: PlaceDTO): number {
+  if (!place.stat || place.stat.rating === null) return 0;
+  return place.stat.rating * Math.log10((place.stat.reviewCount ?? 0) + 10);
+}
+
+function byPopularity(places: PlaceDTO[]): PlaceDTO[] {
+  return places.slice().sort((a, b) => popularity(b) - popularity(a));
+}
 
 function dedupe(places: PlaceDTO[]): PlaceDTO[] {
   const seen = new Set<string>();
@@ -75,6 +83,7 @@ export function pickActivities(
   for (const place of places) {
     if (isActivity(place.category)) buckets.get(place.category)?.push(place);
   }
+  for (const category of ACTIVITY_CATEGORIES) buckets.set(category, byPopularity(buckets.get(category) ?? []));
 
   const picked: PlaceDTO[] = [];
   const counts = new Map<ActivityCategory, number>(
@@ -247,11 +256,13 @@ function takeMeal(
   const preferredPool = pool.filter((place) => place.category === preferred);
   const candidates = preferredPool.length > 0 ? preferredPool : pool;
 
-  let best = candidates[0];
+    let best = candidates[0];
   if (anchor) {
-    for (const candidate of candidates) {
-      if (meters(candidate, anchor) < meters(best, anchor)) best = candidate;
-    }
+    const nearest = candidates
+      .slice()
+      .sort((a, b) => meters(a, anchor) - meters(b, anchor))
+      .slice(0, 5);
+    best = nearest.reduce((top, candidate) => (popularity(candidate) > popularity(top) ? candidate : top), nearest[0]);
   }
   pool.splice(pool.indexOf(best), 1);
   return best;

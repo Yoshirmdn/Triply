@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
-import { findPlacePhoto } from "@/lib/place-photo";
+import { findCatalogPhoto } from "@/lib/catalog";
 import { photoQuerySchema } from "@/lib/validations/place.schema";
 
 export const dynamic = "force-dynamic";
@@ -20,8 +20,8 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    const photo = await findPlacePhoto(parsed.data);
-
+    const photo = await findCatalogPhoto(parsed.data);
+    
     return NextResponse.json(
       {
         success: true,

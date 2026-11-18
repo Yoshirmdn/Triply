@@ -434,8 +434,8 @@ export default async function Home() {
           </div>
           <div className="space-y-2">
             <p className="font-semibold text-neutral-900">Sumber data</p>
-            <p>Peta dan tempat: OpenStreetMap, Geoapify</p>
-            <p>Foto: Wikipedia/Wikimedia Commons</p>
+            <p>Peta: OpenStreetMap · Rute: Geoapify</p>
+            <p>Data tempat dan foto: Google Maps</p>
           </div>
         </div>
         <div className="border-t border-neutral-200 py-4 text-center text-xs text-neutral-400">

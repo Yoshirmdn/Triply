@@ -114,27 +114,36 @@ export function PlacePhoto({
   const Icon = ICONS[category];
   const showImage = photo && failed !== photo.url;
 
-  return (
-    <div className={cn("relative overflow-hidden bg-gradient-to-br", GRADIENTS[category], photo === undefined && "animate-pulse", className)}>
+    return (
+    <div
+      className={cn(
+        "relative overflow-hidden bg-gradient-to-br",
+        GRADIENTS[category],
+        photo === undefined && "animate-pulse",
+        className,
+      )}
+    >
       {showImage ? (
+        // eslint-disable-next-line @next/next/no-img-element
         <img
           src={photo.url}
-          alt={name}
+          alt={photo.title ?? name}
           loading="lazy"
-          referrerPolicy="no-referrer"
           onError={() => setFailed(photo.url)}
-          className="absolute inset-0 size-full object-cover"
+          className="absolute inset-0 h-full w-full object-cover"
         />
-      ) : (
+      ) : photo === null || (photo && failed === photo.url) ? (
         <div className="absolute inset-0 flex items-center justify-center">
-          <Icon className={cn("size-8 text-white/80", iconClassName)} />
+          <Icon className={cn("h-8 w-8 text-white/80", iconClassName)} />
         </div>
-      )}
-      {showImage && showCredit && !src ? (
-        <span title={photo.title} className="absolute bottom-1.5 right-1.5 rounded bg-black/50 px-1.5 py-0.5 text-[10px] text-white">
-          Wikipedia
-        </span>
       ) : null}
+
+      {showCredit && showImage ? (
+        <p className="absolute bottom-2 right-2 text-right text-xs text-white drop-shadow-md">
+          Foto dari Google Maps (katalog lokal) · <span className="underline">© OpenStreetMap contributors</span>
+        </p>
+      ) : null}
+
       {children}
     </div>
   );

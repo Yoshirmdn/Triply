@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { resolveActor } from "@/lib/permissions";
 import { prisma } from "@/lib/prisma";
-import { PlacesApiError, geocodeFirst } from "@/lib/geoapify";
+import { geocodeFirst } from "@/lib/catalog";
 import { buildPlan } from "@/lib/itinerary-service";
 import { accessWhere, memberSelect } from "@/lib/trip-helpers";
 import { uuidSchema } from "@/lib/validations/common.schema";
@@ -92,7 +92,7 @@ export async function POST(request: NextRequest, { params }: Ctx) {
         {
           success: false,
           status: 422,
-          message: "Destination location not found!",
+          message: "Destination is not in the places catalog yet!",
         },
         { status: 422 },
       );
@@ -121,13 +121,7 @@ export async function POST(request: NextRequest, { params }: Ctx) {
       data: plan,
     });
   } catch (error) {
-    if (error instanceof PlacesApiError) {
-      const message = error.status === 404 ? "Data not found!" : error.message;
-      return NextResponse.json(
-        { success: false, status: error.status, message },
-        { status: error.status },
-      );
-    }
+    
     console.error(error);
     return NextResponse.json(
       { success: false, status: 500, message: "Internal server error!" },

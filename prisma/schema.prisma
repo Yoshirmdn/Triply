@@ -174,21 +174,33 @@ model TripDay {
   @@index([tripId])
 }
 
-model PlaceStat {
-  id          String   @id @default(uuid()) @db.Uuid
-  externalId  String   @unique
+model CatalogPlace {
+  id          String        @id @default(uuid()) @db.Uuid
+  externalId  String        @unique
   name        String
-  latitude    Float    @db.DoublePrecision
-  longitude   Float    @db.DoublePrecision
+  category    PlaceCategory @default(OTHER)
+  categories  String[]
+  address     String?
+  city        String?
+  province    String?
+  latitude    Float         @db.DoublePrecision
+  longitude   Float         @db.DoublePrecision
   rating      Float?
   reviewCount Int?
   priceRange  String?
   mapsUrl     String?
   photoUrl    String?
-  importedAt  DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  website     String?
+  phone       String?
+  description String?
+  openHours   Json?
+  importedAt  DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
 
   @@index([latitude, longitude])
+  @@index([category])
+  @@index([city])
+  @@index([province])
 }
 
 model Place {
