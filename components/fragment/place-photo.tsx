@@ -1,7 +1,17 @@
 "use client";
 
 import { useEffect, useState, type ReactNode } from "react";
-import { Coffee, Hotel, Landmark, MapPin, ShoppingBag, Ticket, Trees, UtensilsCrossed, type LucideIcon } from "lucide-react";
+import {
+  Coffee,
+  Hotel,
+  Landmark,
+  MapPin,
+  ShoppingBag,
+  Ticket,
+  Trees,
+  UtensilsCrossed,
+  type LucideIcon,
+} from "lucide-react";
 import { apiGet } from "@/lib/api-client";
 import { cn } from "@/lib/utils";
 import type { PlaceCategoryValue } from "@/data/places";
@@ -39,7 +49,8 @@ const waiting: (() => void)[] = [];
 let active = 0;
 
 async function limited<T>(task: () => Promise<T>): Promise<T> {
-  if (active >= MAX_CONCURRENT) await new Promise<void>((resolve) => waiting.push(resolve));
+  if (active >= MAX_CONCURRENT)
+    await new Promise<void>((resolve) => waiting.push(resolve));
   active += 1;
   try {
     return await task();
@@ -88,8 +99,16 @@ export function PlacePhoto({
   showCredit = false,
   children,
 }: PlacePhotoProps) {
-  const key = [kind, name, latitude?.toFixed(4) ?? "", longitude?.toFixed(4) ?? ""].join("|");
-  const [loaded, setLoaded] = useState<{ key: string; photo: PlacePhotoDTO | null } | null>(null);
+  const key = [
+    kind,
+    name,
+    latitude?.toFixed(4) ?? "",
+    longitude?.toFixed(4) ?? "",
+  ].join("|");
+  const [loaded, setLoaded] = useState<{
+    key: string;
+    photo: PlacePhotoDTO | null;
+  } | null>(null);
   const [failed, setFailed] = useState<string | null>(null);
 
   useEffect(() => {
@@ -109,12 +128,19 @@ export function PlacePhoto({
   }, [key, src, name, kind, latitude, longitude]);
 
   const cached = resolved.get(key);
-  const fetched = cached !== undefined ? cached : loaded?.key === key ? loaded.photo : undefined;
-  const photo: PlacePhotoDTO | null | undefined = src ? { url: src, title: name, pageUrl: src } : fetched;
+  const fetched =
+    cached !== undefined
+      ? cached
+      : loaded?.key === key
+        ? loaded.photo
+        : undefined;
+  const photo: PlacePhotoDTO | null | undefined = src
+    ? { url: src, title: name, pageUrl: src }
+    : fetched;
   const Icon = ICONS[category];
   const showImage = photo && failed !== photo.url;
 
-    return (
+  return (
     <div
       className={cn(
         "relative overflow-hidden bg-gradient-to-br",
@@ -140,7 +166,7 @@ export function PlacePhoto({
 
       {showCredit && showImage ? (
         <p className="absolute bottom-2 right-2 text-right text-xs text-white drop-shadow-md">
-          Foto dari Google Maps (katalog lokal) · <span className="underline">© OpenStreetMap contributors</span>
+          Google Maps
         </p>
       ) : null}
 
