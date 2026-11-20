@@ -28,6 +28,25 @@ export const FILTERABLE_CATEGORIES = PLACE_CATEGORIES.filter(
   (value): value is Exclude<PlaceCategoryValue, "OTHER"> => value !== "OTHER",
 );
 
+export const PLACE_ALIASES: Record<string, string[]> = {
+  solo: ["Surakarta"],
+  surakarta: ["Solo"],
+  jogja: ["Yogyakarta"],
+  jogjakarta: ["Yogyakarta"],
+  yogya: ["Yogyakarta"],
+  dki: ["Jakarta"],
+  diy: ["Yogyakarta"],
+  "dki jakarta": ["Jakarta"],
+  "jawa barat": ["West Java"],
+  "jawa tengah": ["Central Java"],
+  "bandung barat": ["West Bandung"],
+};
+
+export function searchTerms(text: string): string[] {
+  const clean = text.trim();
+  return [clean, ...(PLACE_ALIASES[clean.toLowerCase()] ?? [])];
+}
+
 export const PLACE_PROVIDER = "gmaps";
 
 export const SEARCH_RADIUS_OPTIONS = [

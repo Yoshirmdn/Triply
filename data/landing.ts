@@ -1,50 +1,57 @@
 export const POPULAR_DESTINATIONS = [
-  { name: "Bali", tagline: "Pantai, pura, dan sawah terasering" },
-  { name: "Yogyakarta", tagline: "Budaya, candi, dan kuliner" },
+  { name: "Yogyakarta", tagline: "Candi, keraton, dan jajanan malam" },
   { name: "Bandung", tagline: "Kota kembang berhawa sejuk" },
-  { name: "Lombok", tagline: "Pantai jernih dan Rinjani" },
-  { name: "Labuan Bajo", tagline: "Gerbang Pulau Komodo" },
-  { name: "Raja Ampat", tagline: "Surga bawah laut Papua" },
-  { name: "Malang", tagline: "Wisata alam dan kota tua" },
-  { name: "Jakarta", tagline: "Museum, belanja, dan hiburan" },
+  { name: "Jakarta", tagline: "Museum, kota tua, dan belanja" },
+  {
+    name: "Pangandaran",
+    tagline: "Pantai dan wisata air di selatan Jawa Barat",
+  },
+  { name: "Lembang", tagline: "Kebun, kafe, dan udara pegunungan" },
+  { name: "Bogor", tagline: "Kebun raya dan kuliner hujan" },
+  { name: "Solo", tagline: "Batik, keraton, dan kuliner khas" },
 ] as const;
 
 export const QUICK_DESTINATIONS = [
-  "Bali",
   "Yogyakarta",
   "Bandung",
-  "Lombok",
-  "Labuan Bajo",
+  "Jakarta",
+  "Pangandaran",
+  "Lembang",
 ] as const;
 
 export const SAMPLE_ITINERARY = {
-  title: "Contoh: 3 hari di Yogyakarta",
+  title: "Contoh: 2 hari di Bandung",
   days: [
     {
       label: "Hari 1",
-      theme: "Candi dan sunset",
+      theme: "Alam dan kafe",
       stops: [
-        { time: "07:00", name: "Candi Prambanan" },
-        { time: "11:30", name: "Keraton Yogyakarta" },
-        { time: "17:30", name: "Tebing Breksi" },
+        { time: "09:00", name: "Tempat wisata alam terdekat", kind: "Wisata" },
+        {
+          time: "12:00",
+          name: "Makan siang di restoran populer",
+          kind: "Makan siang",
+        },
+        { time: "14:30", name: "Wisata kota atau museum", kind: "Wisata" },
+        { time: "18:30", name: "Makan malam", kind: "Makan malam" },
       ],
     },
     {
       label: "Hari 2",
-      theme: "Budaya dan belanja",
+      theme: "Belanja dan kuliner",
       stops: [
-        { time: "08:00", name: "Taman Sari" },
-        { time: "10:30", name: "Museum Sonobudoyo" },
-        { time: "15:00", name: "Jalan Malioboro" },
-      ],
-    },
-    {
-      label: "Hari 3",
-      theme: "Alam dan pantai",
-      stops: [
-        { time: "06:00", name: "Puncak Becici" },
-        { time: "10:00", name: "Hutan Pinus Mangunan" },
-        { time: "15:00", name: "Pantai Parangtritis" },
+        {
+          time: "09:00",
+          name: "Pusat perbelanjaan atau pasar",
+          kind: "Belanja",
+        },
+        {
+          time: "12:00",
+          name: "Makan siang di restoran populer",
+          kind: "Makan siang",
+        },
+        { time: "15:30", name: "Ngopi di kafe", kind: "Kafe" },
+        { time: "18:30", name: "Makan malam", kind: "Makan malam" },
       ],
     },
   ],
@@ -59,7 +66,7 @@ export const FAQ_ITEMS = [
   {
     question: "Dari mana data tempat dan foto berasal?",
     answer:
-      "Data tempat dan rute dari OpenStreetMap lewat Geoapify. Foto diambil dari Wikipedia/Wikimedia Commons bila tersedia. Kalau tidak ada foto, kartu menampilkan ikon kategori.",
+      "Data tempat, rating, dan foto berasal dari katalog Google Maps, peta dari OpenStreetMap, dan rute dari Geoapify. Kalau foto tidak tersedia, kartu menampilkan ikon kategori.",
   },
   {
     question: "Bagaimana cara membagikan rencana ke teman?",
