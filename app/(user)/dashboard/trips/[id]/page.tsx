@@ -20,6 +20,8 @@ import { TravelLinks } from "@/components/fragment/travel-links";
 import { TripMembers } from "@/components/fragment/trip-members";
 import { formatIDR } from "@/utils/format";
 import { formatDateID, formatLongDateID } from "@/utils/date";
+import { WeatherBadge } from "@/components/element/weather-badge";
+import { getTripInsights } from "@/lib/trip-insights";
 
 type TripDetailPageProps = {
   params: Promise<{ id: string }>;
@@ -37,7 +39,12 @@ export default async function TripDetailPage({ params }: TripDetailPageProps) {
   const { id } = await params;
   const trip = await loadTripOrNotFound(actor, id);
   const plannedItems = trip.days.reduce((sum, day) => sum + day.itemCount, 0);
-  const allPeople = await listTripPeople(trip.id);
+  const [allPeople, insights] = await Promise.all([
+    listTripPeople(trip.id),
+    getTripInsights(trip),
+  ]);
+  const insightByDay = new Map(insights.map((entry) => [entry.dayId, entry]));
+  const estimatedTotal = insights.reduce((sum, entry) => sum + entry.cost, 0);
   const people = trip.isOwner
     ? allPeople
     : allPeople.filter((person) => person.kind !== "invite");
@@ -155,6 +162,11 @@ export default async function TripDetailPage({ params }: TripDetailPageProps) {
           <p className="mt-2 text-sm font-medium text-neutral-900">
             {plannedItems} destinasi
           </p>
+          <p className="mt-1 text-xs text-neutral-400">
+            {estimatedTotal > 0
+              ? `Estimasi tiket dan makan ${formatIDR(estimatedTotal)}`
+              : "Estimasi biaya belum tersedia"}
+          </p>
         </div>
       </div>
 
@@ -187,22 +199,33 @@ export default async function TripDetailPage({ params }: TripDetailPageProps) {
           Ringkasan hari
         </h2>
         <ul className="divide-y divide-neutral-200 overflow-hidden rounded-xl border border-neutral-200 bg-white">
-          {trip.days.map((day) => (
-            <li
-              key={day.id}
-              className="flex items-center justify-between gap-4 px-5 py-3 text-sm"
-            >
-              <span className="font-medium text-neutral-900">
-                Hari {day.dayNumber}
-              </span>
-              <span className="flex-1 text-neutral-600">
-                {formatLongDateID(day.date)}
-              </span>
-              <span className="text-neutral-400">
-                {day.itemCount} destinasi
-              </span>
-            </li>
-          ))}
+          {trip.days.map((day) => {
+            const insight = insightByDay.get(day.id);
+            return (
+              <li
+                key={day.id}
+                className="flex flex-wrap items-center gap-x-4 gap-y-2 px-5 py-3 text-sm"
+              >
+                <span className="font-medium text-neutral-900">
+                  Hari {day.dayNumber}
+                </span>
+                <span className="flex-1 text-neutral-600">
+                  {formatLongDateID(day.date)}
+                </span>
+                {insight?.weather ? (
+                  <WeatherBadge weather={insight.weather} compact />
+                ) : null}
+                {insight && insight.cost > 0 ? (
+                  <span className="text-xs text-neutral-500">
+                    ± {formatIDR(insight.cost)}
+                  </span>
+                ) : null}
+                <span className="text-neutral-400">
+                  {day.itemCount} destinasi
+                </span>
+              </li>
+            );
+          })}
         </ul>
         <p className="text-xs text-neutral-400">
           Catat pengeluaran dan pantau sisa budget di halaman Budget.

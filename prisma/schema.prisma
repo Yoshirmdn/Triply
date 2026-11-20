@@ -121,6 +121,8 @@ model Trip {
   shareToken  String?      @unique
   isPublic    Boolean      @default(false)
   invites     TripInvite[]
+  checklist   TripChecklistItem[]
+  notes       TripNote[]
   createdAt   DateTime     @default(now())
   updatedAt   DateTime     @updatedAt
   user        User         @relation(fields: [userId], references: [id], onDelete: Cascade)
@@ -157,6 +159,48 @@ model TripMember {
 
   @@unique([tripId, userId])
   @@index([userId])
+}
+
+enum ChecklistKind {
+  PACKING
+  TODO
+}
+
+enum NoteKind {
+  NOTE
+  BOOKING
+}
+
+model TripChecklistItem {
+  id          String        @id @default(uuid()) @db.Uuid
+  tripId      String        @db.Uuid
+  kind        ChecklistKind @default(PACKING)
+  text        String        @db.VarChar(160)
+  done        Boolean       @default(false)
+  sortOrder   Int           @default(0)
+  createdById String?       @db.Uuid
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+  trip        Trip          @relation(fields: [tripId], references: [id], onDelete: Cascade)
+
+  @@index([tripId, kind])
+}
+
+model TripNote {
+  id          String   @id @default(uuid()) @db.Uuid
+  tripId      String   @db.Uuid
+  kind        NoteKind @default(NOTE)
+  title       String   @db.VarChar(160)
+  content     String?  @db.Text
+  reference   String?  @db.VarChar(80)
+  url         String?  @db.VarChar(500)
+  dayNumber   Int?
+  createdById String?  @db.Uuid
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  trip        Trip     @relation(fields: [tripId], references: [id], onDelete: Cascade)
+
+  @@index([tripId, kind])
 }
 
 model TripDay {

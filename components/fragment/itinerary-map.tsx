@@ -15,18 +15,29 @@ type MapStop = {
 type ItineraryMapProps = {
   stops: MapStop[];
   route: RouteDTO | null;
+  connect?: boolean;
 };
 
 const DEFAULT_CENTER: [number, number] = [-2.5, 118];
 
 function escapeHtml(value: string) {
   return value.replace(/[&<>"']/g, (char) => {
-    const map: Record<string, string> = { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" };
+    const map: Record<string, string> = {
+      "&": "&amp;",
+      "<": "&lt;",
+      ">": "&gt;",
+      '"': "&quot;",
+      "'": "&#39;",
+    };
     return map[char];
   });
 }
 
-export function ItineraryMap({ stops, route }: ItineraryMapProps) {
+export function ItineraryMap({
+  stops,
+  route,
+  connect = true,
+}: ItineraryMapProps) {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const leafletRef = useRef<typeof import("leaflet") | null>(null);
   const layerRef = useRef<LayerGroup | null>(null);
@@ -44,7 +55,8 @@ export function ItineraryMap({ stops, route }: ItineraryMapProps) {
       instance = L.map(containerRef.current).setView(DEFAULT_CENTER, 4);
       L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
         maxZoom: 19,
-        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+        attribution:
+          '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
       }).addTo(instance);
       layerRef.current = L.layerGroup().addTo(instance);
       setMap(instance);
@@ -71,12 +83,16 @@ export function ItineraryMap({ stops, route }: ItineraryMapProps) {
 
     if (route && route.line.length > 0) {
       for (const line of route.line) {
-        L.polyline(line, { color: "#0f766e", weight: 5, opacity: 0.85 }).addTo(layer);
+        L.polyline(line, { color: "#0f766e", weight: 5, opacity: 0.85 }).addTo(
+          layer,
+        );
         for (const point of line) bounds.push(point);
       }
-    } else if (stops.length > 1) {
+    } else if (connect && stops.length > 1) {
       L.polyline(
-        stops.map((stop) => [stop.latitude, stop.longitude] as [number, number]),
+        stops.map(
+          (stop) => [stop.latitude, stop.longitude] as [number, number],
+        ),
         { color: "#0f766e", weight: 3, opacity: 0.6, dashArray: "6 8" },
       ).addTo(layer);
     }
@@ -99,7 +115,12 @@ export function ItineraryMap({ stops, route }: ItineraryMapProps) {
     } else if (bounds.length === 1) {
       map.setView(bounds[0], 14);
     }
-  }, [map, stops, route]);
+  }, [map, stops, route, connect]);
 
-  return <div ref={containerRef} className="h-full w-full rounded-xl border border-neutral-200" />;
+  return (
+    <div
+      ref={containerRef}
+      className="h-full w-full rounded-xl border border-neutral-200"
+    />
+  );
 }

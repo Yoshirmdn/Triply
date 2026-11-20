@@ -1,15 +1,23 @@
 import Link from "next/link";
+import { LandingTemplates } from "@/components/fragment/landing-templates";
 import {
   ArrowRight,
   CalendarDays,
+  Coffee,
   Compass,
   Heart,
+  Landmark,
   Map,
+  MapPin,
   Route,
   Search,
   Share2,
   ShieldCheck,
+  ShoppingBag,
+  Star,
+  UtensilsCrossed,
   Wallet,
+  type LucideIcon,
 } from "lucide-react";
 import { siteConfig } from "@/data/site";
 import {
@@ -19,8 +27,8 @@ import {
   SAMPLE_ITINERARY,
 } from "@/data/landing";
 import { resolveActor } from "@/lib/permissions";
+import { getLandingStats } from "@/lib/landing-stats";
 import { PlacePhoto } from "@/components/fragment/place-photo";
-import { LandingTemplates } from "@/components/fragment/landing-templates";
 
 const services = [
   { icon: Compass, label: "Jelajahi", href: "/dashboard/explore" },
@@ -30,6 +38,17 @@ const services = [
   { icon: Heart, label: "Favorit", href: "/dashboard/favorites" },
   { icon: Share2, label: "Bagikan", href: "/dashboard/trips" },
 ];
+
+const STOP_ICONS: Record<string, { icon: LucideIcon; tone: string }> = {
+  Wisata: { icon: Landmark, tone: "bg-teal-50 text-teal-800" },
+  "Makan siang": {
+    icon: UtensilsCrossed,
+    tone: "bg-orange-50 text-orange-700",
+  },
+  "Makan malam": { icon: UtensilsCrossed, tone: "bg-rose-50 text-rose-700" },
+  Belanja: { icon: ShoppingBag, tone: "bg-pink-50 text-pink-700" },
+  Kafe: { icon: Coffee, tone: "bg-amber-50 text-amber-700" },
+};
 
 const promos = [
   {
@@ -74,6 +93,8 @@ const steps = [
 export default async function Home() {
   const { actor } = await resolveActor();
   const dashboardHref = actor?.role === "SUPER_ADMIN" ? "/admin" : "/dashboard";
+  const stats = await getLandingStats();
+  const cityCount = POPULAR_DESTINATIONS.length;
 
   return (
     <div className="flex flex-1 flex-col bg-neutral-50">
@@ -127,7 +148,7 @@ export default async function Home() {
                   <ShieldCheck className="size-4" /> Masuk dengan Google
                 </span>
                 <span className="inline-flex items-center gap-2">
-                  <Map className="size-4" /> Peta OpenStreetMap
+                  <Map className="size-4" /> Rating dan foto dari Google Maps
                 </span>
                 <span className="inline-flex items-center gap-2">
                   <Share2 className="size-4" /> Bagikan lewat tautan
@@ -138,19 +159,19 @@ export default async function Home() {
             <div className="relative hidden h-96 lg:block" aria-hidden="true">
               <PlacePhoto
                 kind="destination"
-                name="Bali"
+                name="Yogyakarta"
                 className="absolute right-0 top-0 h-56 w-64 rotate-3 rounded-2xl shadow-2xl ring-4 ring-white/80"
                 iconClassName="size-10"
               />
               <PlacePhoto
                 kind="destination"
-                name="Yogyakarta"
+                name="Bandung"
                 className="absolute left-0 top-24 h-52 w-56 -rotate-3 rounded-2xl shadow-2xl ring-4 ring-white/80"
                 iconClassName="size-10"
               />
               <PlacePhoto
                 kind="destination"
-                name="Raja Ampat"
+                name="Pangandaran"
                 className="absolute bottom-0 right-10 h-48 w-60 rotate-1 rounded-2xl shadow-2xl ring-4 ring-white/80"
                 iconClassName="size-10"
               />
@@ -196,6 +217,31 @@ export default async function Home() {
             </div>
           </div>
         </section>
+
+        {stats ? (
+          <section className="mx-auto max-w-5xl px-4 pt-8">
+            <dl className="grid grid-cols-3 divide-x divide-neutral-200 rounded-2xl border border-neutral-200 bg-white py-4 text-center shadow-sm">
+              <div className="px-2">
+                <dt className="text-xs text-neutral-500">Tempat tersedia</dt>
+                <dd className="mt-0.5 text-xl font-bold text-teal-800 sm:text-2xl">
+                  {stats.total.toLocaleString("id-ID")}
+                </dd>
+              </div>
+              <div className="px-2">
+                <dt className="text-xs text-neutral-500">Punya rating</dt>
+                <dd className="mt-0.5 text-xl font-bold text-teal-800 sm:text-2xl">
+                  {stats.rated.toLocaleString("id-ID")}
+                </dd>
+              </div>
+              <div className="px-2">
+                <dt className="text-xs text-neutral-500">Kota</dt>
+                <dd className="mt-0.5 text-xl font-bold text-teal-800 sm:text-2xl">
+                  {cityCount}
+                </dd>
+              </div>
+            </dl>
+          </section>
+        ) : null}
 
         <section
           id="layanan"
@@ -255,6 +301,12 @@ export default async function Home() {
                   iconClassName="size-12"
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-transparent" />
+                {stats && stats.counts[destination.name] > 0 ? (
+                  <span className="absolute left-3 top-3 rounded-full bg-white/90 px-2.5 py-0.5 text-xs font-medium text-neutral-800 backdrop-blur">
+                    {stats.counts[destination.name].toLocaleString("id-ID")}{" "}
+                    tempat
+                  </span>
+                ) : null}
                 <div className="absolute inset-x-0 bottom-0 p-4">
                   <p
                     className={`font-bold text-white ${index === 0 ? "text-2xl" : "text-lg"}`}
@@ -270,7 +322,59 @@ export default async function Home() {
           </div>
         </section>
 
+        {stats && stats.top.length > 0 ? (
+          <section className="mx-auto max-w-6xl px-4 pt-20">
+            <h2 className="text-2xl font-bold tracking-tight text-neutral-900 sm:text-3xl">
+              Paling dicari wisatawan
+            </h2>
+            <p className="mt-1 text-neutral-600">
+              Tempat dengan rating tinggi dan ulasan terbanyak di katalog kami.
+            </p>
+            <div className="mt-8 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+              {stats.top.map((place) => (
+                <Link
+                  key={place.placeId}
+                  href={`/dashboard/explore?q=${encodeURIComponent(place.name)}`}
+                  className="group overflow-hidden rounded-2xl border border-neutral-200 bg-white shadow-sm transition hover:shadow-md"
+                >
+                  <PlacePhoto
+                    name={place.name}
+                    category={place.category}
+                    src={place.stat?.photoUrl ?? null}
+                    className="h-44 w-full"
+                    iconClassName="size-10"
+                  >
+                    {place.stat?.rating ? (
+                      <span className="absolute right-3 top-3 inline-flex items-center gap-1 rounded-full bg-white/90 px-2.5 py-0.5 text-xs font-semibold text-neutral-900 backdrop-blur">
+                        <Star className="size-3.5 fill-amber-400 text-amber-400" />
+                        {place.stat.rating.toFixed(1)}
+                      </span>
+                    ) : null}
+                  </PlacePhoto>
+                  <div className="space-y-1 p-4">
+                    <h3 className="line-clamp-1 font-semibold text-neutral-900 group-hover:text-teal-800">
+                      {place.name}
+                    </h3>
+                    {place.stat?.reviewCount ? (
+                      <p className="text-xs text-neutral-500">
+                        {place.stat.reviewCount.toLocaleString("id-ID")} ulasan
+                      </p>
+                    ) : null}
+                    {place.address ? (
+                      <p className="flex items-start gap-1.5 text-sm text-neutral-600">
+                        <MapPin className="mt-0.5 size-4 shrink-0 text-neutral-400" />
+                        <span className="line-clamp-1">{place.address}</span>
+                      </p>
+                    ) : null}
+                  </div>
+                </Link>
+              ))}
+            </div>
+          </section>
+        ) : null}
+
         <LandingTemplates />
+
         <section className="mx-auto max-w-6xl px-4 pt-20">
           <div className="grid gap-4 md:grid-cols-3">
             {promos.map((promo) => (
@@ -322,24 +426,26 @@ export default async function Home() {
                     <p className="text-sm text-neutral-500">{day.theme}</p>
                   </div>
                   <ol className="space-y-3">
-                    {day.stops.map((stop) => (
-                      <li key={stop.name} className="flex items-center gap-3">
-                        <PlacePhoto
-                          kind="destination"
-                          name={stop.name}
-                          className="size-14 shrink-0 rounded-xl"
-                          iconClassName="size-5"
-                        />
-                        <div className="min-w-0">
-                          <p className="truncate text-sm font-medium text-neutral-900">
-                            {stop.name}
-                          </p>
-                          <p className="text-xs text-neutral-500">
-                            {stop.time}
-                          </p>
-                        </div>
-                      </li>
-                    ))}
+                    {day.stops.map((stop) => {
+                      const style = STOP_ICONS[stop.kind] ?? STOP_ICONS.Wisata;
+                      return (
+                        <li key={stop.name} className="flex items-center gap-3">
+                          <span
+                            className={`flex size-12 shrink-0 items-center justify-center rounded-xl ${style.tone}`}
+                          >
+                            <style.icon className="size-5" />
+                          </span>
+                          <div className="min-w-0">
+                            <p className="truncate text-sm font-medium text-neutral-900">
+                              {stop.name}
+                            </p>
+                            <p className="text-xs text-neutral-500">
+                              {stop.time} · {stop.kind}
+                            </p>
+                          </div>
+                        </li>
+                      );
+                    })}
                   </ol>
                 </div>
               ))}
