@@ -57,6 +57,13 @@ model User {
   isActive      Boolean       @default(true)
   createdAt     DateTime      @default(now())
   updatedAt     DateTime      @updatedAt
+  expensesPaid        Expense[]        @relation("ExpensePaidBy")
+  expenseShares       ExpenseShare[]
+  settlementsSent     TripSettlement[] @relation("SettlementFrom")
+  settlementsReceived TripSettlement[] @relation("SettlementTo")
+  defaultTravelers    Int              @default(1)
+  defaultStyle        String           @default("BALANCED") @db.VarChar(20)
+  defaultPace         String           @default("NORMAL") @db.VarChar(20)
   accounts      Account[]
   sessions      Session[]
   trips         Trip[]
@@ -123,6 +130,7 @@ model Trip {
   invites     TripInvite[]
   checklist   TripChecklistItem[]
   notes       TripNote[]
+  settlements TripSettlement[]
   createdAt   DateTime     @default(now())
   updatedAt   DateTime     @updatedAt
   user        User         @relation(fields: [userId], references: [id], onDelete: Cascade)
@@ -291,12 +299,42 @@ model Expense {
   description String          @db.VarChar(200)
   amount      Decimal         @db.Decimal(14, 2)
   expenseDate DateTime        @db.Date
+  paidById    String?         @db.Uuid
   createdAt   DateTime        @default(now())
   updatedAt   DateTime        @updatedAt
   trip        Trip            @relation(fields: [tripId], references: [id], onDelete: Cascade)
+  paidBy      User?           @relation("ExpensePaidBy", fields: [paidById], references: [id], onDelete: SetNull)
+  shares      ExpenseShare[]
 
   @@index([tripId, expenseDate])
   @@index([tripId, category])
+  @@index([paidById])
+}
+
+model ExpenseShare {
+  id        String  @id @default(uuid()) @db.Uuid
+  expenseId String  @db.Uuid
+  userId    String  @db.Uuid
+  expense   Expense @relation(fields: [expenseId], references: [id], onDelete: Cascade)
+  user      User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([expenseId, userId])
+  @@index([userId])
+}
+
+model TripSettlement {
+  id          String   @id @default(uuid()) @db.Uuid
+  tripId      String   @db.Uuid
+  fromUserId  String   @db.Uuid
+  toUserId    String   @db.Uuid
+  amount      Decimal  @db.Decimal(14, 2)
+  createdById String?  @db.Uuid
+  createdAt   DateTime @default(now())
+  trip        Trip     @relation(fields: [tripId], references: [id], onDelete: Cascade)
+  from        User     @relation("SettlementFrom", fields: [fromUserId], references: [id], onDelete: Cascade)
+  to          User     @relation("SettlementTo", fields: [toUserId], references: [id], onDelete: Cascade)
+
+  @@index([tripId])
 }
 
 model Favorite {
