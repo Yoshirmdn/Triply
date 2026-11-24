@@ -15,27 +15,17 @@ import type { TripDTO } from "@/@type/trip";
 const inputClass =
   "w-full rounded-lg border border-neutral-300 bg-white px-3 py-2 text-sm text-neutral-900 outline-none transition placeholder:text-neutral-400 focus:border-teal-700 focus:ring-2 focus:ring-teal-700/20";
 
-function Field({
-  label,
-  error,
-  children,
-}: {
-  label: string;
-  error?: string;
-  children: ReactNode;
-}) {
+function Field({ label, error, children }: { label: string; error?: string; children: ReactNode }) {
   return (
     <label className="block space-y-1.5">
       <span className="text-sm font-medium text-neutral-700">{label}</span>
       {children}
-      {error ? (
-        <span className="block text-xs text-red-600">{error}</span>
-      ) : null}
+      {error ? <span className="block text-xs text-red-600">{error}</span> : null}
     </label>
   );
 }
 
-function toDefaults(trip?: TripDTO): TripInput {
+function toDefaults(trip: TripDTO | undefined, defaultTravelers: number): TripInput {
   if (!trip) {
     return {
       title: "",
@@ -43,7 +33,7 @@ function toDefaults(trip?: TripDTO): TripInput {
       description: "",
       startDate: "",
       endDate: "",
-      travelers: 1,
+      travelers: defaultTravelers,
       budget: 0,
       coverImage: "",
       status: "PLANNING",
@@ -62,7 +52,7 @@ function toDefaults(trip?: TripDTO): TripInput {
   };
 }
 
-export function TripForm({ trip }: { trip?: TripDTO }) {
+export function TripForm({ trip, defaultTravelers = 1 }: { trip?: TripDTO; defaultTravelers?: number }) {
   const router = useRouter();
   const [serverError, setServerError] = useState<string | null>(null);
   const {
@@ -72,7 +62,7 @@ export function TripForm({ trip }: { trip?: TripDTO }) {
     formState: { errors, isSubmitting },
   } = useForm<TripInput>({
     resolver: zodResolver(tripInputSchema),
-    defaultValues: toDefaults(trip),
+    defaultValues: toDefaults(trip, defaultTravelers),
   });
 
   async function onSubmit(values: TripInput) {
@@ -84,31 +74,16 @@ export function TripForm({ trip }: { trip?: TripDTO }) {
       router.push(`/dashboard/trips/${saved.id}`);
       router.refresh();
     } catch (error) {
-      setServerError(
-        error instanceof ApiClientError
-          ? error.message
-          : "Gagal menyimpan perjalanan",
-      );
+      setServerError(error instanceof ApiClientError ? error.message : "Gagal menyimpan perjalanan");
     }
   }
 
   return (
-    <form
-      onSubmit={handleSubmit(onSubmit)}
-      className="space-y-5 rounded-xl border border-neutral-200 bg-white p-6"
-    >
-      {serverError ? (
-        <p className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">
-          {serverError}
-        </p>
-      ) : null}
+    <form onSubmit={handleSubmit(onSubmit)} className="space-y-5 rounded-xl border border-neutral-200 bg-white p-6">
+      {serverError ? <p className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">{serverError}</p> : null}
 
       <Field label="Judul perjalanan" error={errors.title?.message}>
-        <input
-          className={inputClass}
-          placeholder="Liburan Akhir Tahun"
-          {...register("title")}
-        />
+        <input className={inputClass} placeholder="Liburan Akhir Tahun" {...register("title")} />
       </Field>
 
       <div className="space-y-1.5">
@@ -125,29 +100,16 @@ export function TripForm({ trip }: { trip?: TripDTO }) {
             />
           )}
         />
-        {errors.destination?.message ? (
-          <span className="block text-xs text-red-600">
-            {errors.destination.message}
-          </span>
-        ) : null}
+        {errors.destination?.message ? <span className="block text-xs text-red-600">{errors.destination.message}</span> : null}
       </div>
 
       <Field label="Deskripsi" error={errors.description?.message}>
-        <textarea
-          rows={3}
-          className={inputClass}
-          placeholder="Catatan singkat tentang perjalanan ini"
-          {...register("description")}
-        />
+        <textarea rows={3} className={inputClass} placeholder="Catatan singkat tentang perjalanan ini" {...register("description")} />
       </Field>
 
       <div className="grid gap-5 sm:grid-cols-2">
         <Field label="Tanggal mulai" error={errors.startDate?.message}>
-          <input
-            type="date"
-            className={inputClass}
-            {...register("startDate")}
-          />
+          <input type="date" className={inputClass} {...register("startDate")} />
         </Field>
         <Field label="Tanggal selesai" error={errors.endDate?.message}>
           <input type="date" className={inputClass} {...register("endDate")} />
@@ -156,21 +118,10 @@ export function TripForm({ trip }: { trip?: TripDTO }) {
 
       <div className="grid gap-5 sm:grid-cols-3">
         <Field label="Jumlah traveler" error={errors.travelers?.message}>
-          <input
-            type="number"
-            min={1}
-            className={inputClass}
-            {...register("travelers", { valueAsNumber: true })}
-          />
+          <input type="number" min={1} className={inputClass} {...register("travelers", { valueAsNumber: true })} />
         </Field>
         <Field label="Estimasi budget (IDR)" error={errors.budget?.message}>
-          <input
-            type="number"
-            min={0}
-            step={1000}
-            className={inputClass}
-            {...register("budget", { valueAsNumber: true })}
-          />
+          <input type="number" min={0} step={1000} className={inputClass} {...register("budget", { valueAsNumber: true })} />
         </Field>
         <Field label="Status" error={errors.status?.message}>
           <select className={inputClass} {...register("status")}>
@@ -183,15 +134,8 @@ export function TripForm({ trip }: { trip?: TripDTO }) {
         </Field>
       </div>
 
-      <Field
-        label="URL gambar sampul (opsional)"
-        error={errors.coverImage?.message}
-      >
-        <input
-          className={inputClass}
-          placeholder="https://..."
-          {...register("coverImage")}
-        />
+      <Field label="URL gambar sampul (opsional)" error={errors.coverImage?.message}>
+        <input className={inputClass} placeholder="https://..." {...register("coverImage")} />
       </Field>
 
       <div className="flex items-center justify-end gap-3 pt-2">
@@ -206,11 +150,7 @@ export function TripForm({ trip }: { trip?: TripDTO }) {
           disabled={isSubmitting}
           className="rounded-lg bg-teal-800 px-4 py-2 text-sm font-medium text-white transition hover:bg-teal-900 disabled:opacity-60"
         >
-          {isSubmitting
-            ? "Menyimpan..."
-            : trip
-              ? "Simpan perubahan"
-              : "Buat perjalanan"}
+          {isSubmitting ? "Menyimpan..." : trip ? "Simpan perubahan" : "Buat perjalanan"}
         </button>
       </div>
     </form>

@@ -8,7 +8,9 @@ export const expenseInputSchema = z.object({
     .number({ error: "Nominal wajib diisi" })
     .positive("Nominal harus lebih dari 0")
     .max(MAX_EXPENSE_AMOUNT, "Nominal terlalu besar"),
-  expenseDate: z.iso.date("Tanggal tidak valid"),
+    expenseDate: z.iso.date("Tanggal tidak valid"),
+  paidById: z.uuid().nullable().optional(),
+  shareUserIds: z.array(z.uuid()).max(50).optional(),
 });
 
 export const expenseUpdateSchema = expenseInputSchema.partial();

@@ -6,21 +6,25 @@ import { Pencil, Trash2 } from "lucide-react";
 import { ApiClientError, apiDelete } from "@/lib/api-client";
 import { BudgetCharts } from "@/components/fragment/budget-charts";
 import { ExpenseForm } from "@/components/fragment/expense-form";
+import { SettleUp } from "@/components/fragment/settle-up";
 import { EXPENSE_CATEGORY_COLORS, EXPENSE_CATEGORY_LABELS } from "@/data/expense";
 import { cn } from "@/lib/utils";
 import { formatDateID } from "@/utils/date";
 import { formatIDR } from "@/utils/format";
 import type { ExpenseDTO, ExpenseSummaryDTO } from "@/@type/expense";
+import type { SettlementSummaryDTO } from "@/@type/settlement";
 
 type BudgetClientProps = {
   tripId: string;
   canEdit: boolean;
   defaultDate: string;
+  currentUserId: string;
   expenses: ExpenseDTO[];
   summary: ExpenseSummaryDTO;
+  settlement: SettlementSummaryDTO;
 };
 
-export function BudgetClient({ tripId, canEdit, defaultDate, expenses, summary }: BudgetClientProps) {
+export function BudgetClient({ tripId, canEdit, defaultDate, currentUserId, expenses, summary, settlement }: BudgetClientProps) {
   const router = useRouter();
   const [editingId, setEditingId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -29,6 +33,7 @@ export function BudgetClient({ tripId, canEdit, defaultDate, expenses, summary }
   const remaining = Number(summary.remaining);
   const over = remaining < 0;
   const barWidth = Math.min(summary.percentUsed, 100);
+  const nameById = new Map(settlement.participants.map((person) => [person.id, person.name]));
 
   async function remove(expense: ExpenseDTO) {
     if (!window.confirm(`Hapus pengeluaran "${expense.description}"?`)) return;
@@ -78,6 +83,8 @@ export function BudgetClient({ tripId, canEdit, defaultDate, expenses, summary }
 
       <BudgetCharts summary={summary} />
 
+      <SettleUp tripId={tripId} canEdit={canEdit} currentUserId={currentUserId} summary={settlement} />
+
       <div className="grid gap-6 lg:grid-cols-5">
         <div className="space-y-3 lg:col-span-3">
           <h2 className="text-lg font-semibold text-neutral-900">Daftar pengeluaran</h2>
@@ -95,6 +102,8 @@ export function BudgetClient({ tripId, canEdit, defaultDate, expenses, summary }
                     <ExpenseForm
                       tripId={tripId}
                       defaultDate={defaultDate}
+                      participants={settlement.participants}
+                      currentUserId={currentUserId}
                       expense={expense}
                       onDone={() => setEditingId(null)}
                     />
@@ -109,6 +118,11 @@ export function BudgetClient({ tripId, canEdit, defaultDate, expenses, summary }
                         <p className="text-xs text-neutral-500">
                           {EXPENSE_CATEGORY_LABELS[expense.category]} · {formatDateID(expense.expenseDate)}
                         </p>
+                        {expense.paidById && expense.shareUserIds.length > 0 ? (
+                          <p className="text-xs text-neutral-400">
+                            Dibayar {nameById.get(expense.paidById) ?? "anggota"} · dibagi {expense.shareUserIds.length} orang
+                          </p>
+                        ) : null}
                       </div>
                       <p className="text-sm font-semibold text-neutral-900">{formatIDR(expense.amount)}</p>
                       {canEdit ? (
@@ -142,7 +156,12 @@ export function BudgetClient({ tripId, canEdit, defaultDate, expenses, summary }
 
         {canEdit ? (
           <div className="lg:col-span-2">
-            <ExpenseForm tripId={tripId} defaultDate={defaultDate} />
+            <ExpenseForm
+              tripId={tripId}
+              defaultDate={defaultDate}
+              participants={settlement.participants}
+              currentUserId={currentUserId}
+            />
           </div>
         ) : null}
       </div>

@@ -9,6 +9,7 @@ import { ApiClientError, apiPatch, apiPost } from "@/lib/api-client";
 import { expenseInputSchema, type ExpenseInput } from "@/lib/validations/expense.schema";
 import { EXPENSE_CATEGORIES, EXPENSE_CATEGORY_LABELS } from "@/data/expense";
 import type { ExpenseDTO } from "@/@type/expense";
+import type { ParticipantDTO } from "@/@type/settlement";
 
 const inputClass =
   "w-full rounded-lg border border-neutral-300 bg-white px-3 py-2 text-sm text-neutral-900 outline-none transition placeholder:text-neutral-400 focus:border-teal-700 focus:ring-2 focus:ring-teal-700/20";
@@ -26,13 +27,21 @@ function Field({ label, error, children }: { label: string; error?: string; chil
 type ExpenseFormProps = {
   tripId: string;
   defaultDate: string;
+  participants: ParticipantDTO[];
+  currentUserId: string;
   expense?: ExpenseDTO;
   onDone?: () => void;
 };
 
-export function ExpenseForm({ tripId, defaultDate, expense, onDone }: ExpenseFormProps) {
+export function ExpenseForm({ tripId, defaultDate, participants, currentUserId, expense, onDone }: ExpenseFormProps) {
   const router = useRouter();
   const [serverError, setServerError] = useState<string | null>(null);
+  const canSplit = participants.length > 1;
+  const allIds = participants.map((person) => person.id);
+  const [paidById, setPaidById] = useState<string>(
+    expense ? (expense.paidById ?? "") : canSplit && allIds.includes(currentUserId) ? currentUserId : "",
+  );
+  const [shareIds, setShareIds] = useState<string[]>(expense && expense.shareUserIds.length > 0 ? expense.shareUserIds : allIds);
   const {
     register,
     handleSubmit,
@@ -52,11 +61,18 @@ export function ExpenseForm({ tripId, defaultDate, expense, onDone }: ExpenseFor
 
   async function onSubmit(values: ExpenseInput) {
     setServerError(null);
+    if (canSplit && paidById && shareIds.length === 0) {
+      setServerError("Pilih minimal satu orang yang ikut membagi");
+      return;
+    }
+    const payload = canSplit
+      ? { ...values, paidById: paidById || null, shareUserIds: paidById ? shareIds : [] }
+      : values;
     try {
       if (expense) {
-        await apiPatch(`/trips/${tripId}/expenses/${expense.id}`, values);
+        await apiPatch(`/trips/${tripId}/expenses/${expense.id}`, payload);
       } else {
-        await apiPost(`/trips/${tripId}/expenses`, values);
+        await apiPost(`/trips/${tripId}/expenses`, payload);
         reset({ category: values.category, description: "", expenseDate: values.expenseDate });
       }
       router.refresh();
@@ -101,6 +117,45 @@ export function ExpenseForm({ tripId, defaultDate, expense, onDone }: ExpenseFor
           {...register("amount", { valueAsNumber: true })}
         />
       </Field>
+
+      {canSplit ? (
+        <div className="space-y-3 rounded-lg bg-neutral-50 p-3">
+          <Field label="Dibayar oleh">
+            <select className={inputClass} value={paidById} onChange={(event) => setPaidById(event.target.value)}>
+              <option value="">Tidak dibagi (pengeluaran pribadi)</option>
+              {participants.map((person) => (
+                <option key={person.id} value={person.id}>
+                  {person.name}
+                  {person.id === currentUserId ? " (kamu)" : ""}
+                </option>
+              ))}
+            </select>
+          </Field>
+
+          {paidById ? (
+            <fieldset className="space-y-2">
+              <legend className="text-sm font-medium text-neutral-700">Dibagi rata ke</legend>
+              <div className="flex flex-wrap gap-x-4 gap-y-2">
+                {participants.map((person) => (
+                  <label key={person.id} className="flex items-center gap-2 text-sm text-neutral-700">
+                    <input
+                      type="checkbox"
+                      checked={shareIds.includes(person.id)}
+                      onChange={(event) =>
+                        setShareIds((current) =>
+                          event.target.checked ? [...current, person.id] : current.filter((id) => id !== person.id),
+                        )
+                      }
+                      className="size-4 rounded border-neutral-300 accent-teal-800"
+                    />
+                    {person.name}
+                  </label>
+                ))}
+              </div>
+            </fieldset>
+          ) : null}
+        </div>
+      ) : null}
 
       <div className="flex justify-end gap-2">
         {expense ? (

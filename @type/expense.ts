@@ -7,6 +7,8 @@ export type ExpenseDTO = {
   description: string;
   amount: string;
   expenseDate: string;
+  paidById: string | null;
+  shareUserIds: string[];
 };
 
 export type ExpenseSummaryDTO = {

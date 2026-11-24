@@ -95,9 +95,6 @@ export function apiPatch<T>(
   return request<T>("PATCH", path, { ...options, body });
 }
 
-export function apiDelete<T = null>(
-  path: string,
-  options?: Omit<RequestOptions, "body">,
-) {
-  return request<T>("DELETE", path, options);
+export function apiDelete<T = null>(path: string, body?: unknown, options?: Omit<RequestOptions, "body">) {
+  return request<T>("DELETE", path, { ...options, body });
 }

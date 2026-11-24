@@ -3,7 +3,9 @@ import { z } from "zod";
 import { resolveActor } from "@/lib/permissions";
 import { prisma } from "@/lib/prisma";
 import { accessWhere, memberSelect } from "@/lib/trip-helpers";
-import { serializeExpense } from "@/lib/expense-helpers";
+import { expenseInclude, serializeExpense } from "@/lib/expense-helpers";
+import { listParticipants } from "@/lib/settlement-helpers";
+import { resolveExpenseSplit } from "@/lib/settlement";
 import { uuidSchema } from "@/lib/validations/common.schema";
 import { expenseInputSchema, listExpensesQuerySchema } from "@/lib/validations/expense.schema";
 import { parseDateInput } from "@/utils/date";
@@ -46,6 +48,7 @@ export async function GET(request: NextRequest, { params }: RouteContext) {
     const [expenses, total] = await Promise.all([
       prisma.expense.findMany({
         where,
+        include: expenseInclude,
         orderBy: [{ expenseDate: "desc" }, { createdAt: "desc" }],
         skip: (page - 1) * pageSize,
         take: pageSize,
@@ -104,6 +107,15 @@ export async function POST(request: NextRequest, { params }: RouteContext) {
       );
     }
 
+    const participants = await listParticipants(id);
+    const split = resolveExpenseSplit(
+      { paidById: parsed.data.paidById ?? null, shareUserIds: parsed.data.shareUserIds ?? [] },
+      participants.map((person) => person.id),
+    );
+    if (!split.ok) {
+      return NextResponse.json({ success: false, status: 422, message: split.message }, { status: 422 });
+    }
+
     const expense = await prisma.expense.create({
       data: {
         tripId: id,
@@ -111,7 +123,10 @@ export async function POST(request: NextRequest, { params }: RouteContext) {
         description: parsed.data.description,
         amount: parsed.data.amount,
         expenseDate: parseDateInput(parsed.data.expenseDate),
+        paidById: split.paidById,
+        shares: { create: split.shareUserIds.map((userId) => ({ userId })) },
       },
+      include: expenseInclude,
     });
 
     await prisma.activityLog.create({

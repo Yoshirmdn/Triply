@@ -3,7 +3,9 @@ import { z } from "zod";
 import { resolveActor } from "@/lib/permissions";
 import { prisma } from "@/lib/prisma";
 import { accessWhere, memberSelect } from "@/lib/trip-helpers";
-import { serializeExpense } from "@/lib/expense-helpers";
+import { expenseInclude, serializeExpense } from "@/lib/expense-helpers";
+import { listParticipants } from "@/lib/settlement-helpers";
+import { resolveExpenseSplit } from "@/lib/settlement";
 import { uuidSchema } from "@/lib/validations/common.schema";
 import { expenseUpdateSchema } from "@/lib/validations/expense.schema";
 import { parseDateInput } from "@/utils/date";
@@ -50,14 +52,39 @@ export async function PATCH(request: NextRequest, { params }: RouteContext) {
       );
     }
 
-    const existing = await prisma.expense.findFirst({ where: { id: expenseId, tripId: id }, select: { id: true } });
+    const existing = await prisma.expense.findFirst({
+      where: { id: expenseId, tripId: id },
+      select: { id: true, paidById: true, shares: { select: { userId: true } } },
+    });
     if (!existing) {
       return NextResponse.json({ success: false, status: 404, message: "Data not found!" }, { status: 404 });
     }
 
+    const touchesSplit = parsed.data.paidById !== undefined || parsed.data.shareUserIds !== undefined;
+    let splitData: { paidById: string | null; shares: { deleteMany: object; create: { userId: string }[] } } | null = null;
+    if (touchesSplit) {
+      const participants = await listParticipants(id);
+      const split = resolveExpenseSplit(
+        {
+          paidById: parsed.data.paidById !== undefined ? parsed.data.paidById : existing.paidById,
+          shareUserIds: parsed.data.shareUserIds ?? existing.shares.map((share) => share.userId),
+        },
+        participants.map((person) => person.id),
+      );
+      if (!split.ok) {
+        return NextResponse.json({ success: false, status: 422, message: split.message }, { status: 422 });
+      }
+      splitData = {
+        paidById: split.paidById,
+        shares: { deleteMany: {}, create: split.shareUserIds.map((userId) => ({ userId })) },
+      };
+    }
+
     const expense = await prisma.expense.update({
       where: { id: expenseId },
+      include: expenseInclude,
       data: {
+        ...(splitData ?? {}),
         ...(parsed.data.category !== undefined ? { category: parsed.data.category } : {}),
         ...(parsed.data.description !== undefined ? { description: parsed.data.description } : {}),
         ...(parsed.data.amount !== undefined ? { amount: parsed.data.amount } : {}),

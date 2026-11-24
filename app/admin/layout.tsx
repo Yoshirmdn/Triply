@@ -19,6 +19,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
         homeHref="/admin"
         links={links}
         userLabel={actor.name ?? actor.email}
+        settingsHref="/dashboard/settings"
       />
       <main className="mx-auto max-w-6xl px-4 py-8">{children}</main>
     </div>

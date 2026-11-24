@@ -4,6 +4,8 @@ import { toDateInput } from "@/utils/date";
 import type { ExpenseDTO, ExpenseSummaryDTO } from "@/@type/expense";
 import type { ExpenseCategoryValue } from "@/data/expense";
 
+export const expenseInclude = { shares: { select: { userId: true } } } as const;
+
 export function serializeExpense(expense: {
   id: string;
   tripId: string;
@@ -11,6 +13,8 @@ export function serializeExpense(expense: {
   description: string;
   amount: { toString(): string };
   expenseDate: Date;
+  paidById: string | null;
+  shares: { userId: string }[];
 }): ExpenseDTO {
   return {
     id: expense.id,
@@ -19,6 +23,8 @@ export function serializeExpense(expense: {
     description: expense.description,
     amount: expense.amount.toString(),
     expenseDate: toDateInput(expense.expenseDate),
+    paidById: expense.paidById,
+    shareUserIds: expense.shares.map((share) => share.userId),
   };
 }
 
