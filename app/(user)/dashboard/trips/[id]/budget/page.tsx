@@ -2,7 +2,8 @@ import Link from "next/link";
 import { requirePageUser } from "@/lib/permissions";
 import { prisma } from "@/lib/prisma";
 import { loadTripOrNotFound } from "@/lib/page-helpers";
-import { getExpenseSummary, serializeExpense } from "@/lib/expense-helpers";
+import { expenseInclude, getExpenseSummary, serializeExpense } from "@/lib/expense-helpers";
+import { getSettlementSummary } from "@/lib/settlement-helpers";
 import { BudgetClient } from "@/components/fragment/budget-client";
 
 type BudgetPageProps = {
@@ -21,13 +22,15 @@ export default async function BudgetPage({ params }: BudgetPageProps) {
   const { id } = await params;
   const trip = await loadTripOrNotFound(actor, id);
 
-  const [expenses, summary] = await Promise.all([
+  const [expenses, summary, settlement] = await Promise.all([
     prisma.expense.findMany({
       where: { tripId: trip.id },
+      include: expenseInclude,
       orderBy: [{ expenseDate: "desc" }, { createdAt: "desc" }],
       take: 200,
     }),
     getExpenseSummary(trip.id, trip.budget),
+    getSettlementSummary(trip.id),
   ]);
 
   return (
@@ -43,8 +46,10 @@ export default async function BudgetPage({ params }: BudgetPageProps) {
         tripId={trip.id}
         canEdit={trip.canEdit}
         defaultDate={trip.startDate}
+        currentUserId={actor.id}
         expenses={expenses.map(serializeExpense)}
         summary={summary}
+        settlement={settlement}
       />
     </div>
   );

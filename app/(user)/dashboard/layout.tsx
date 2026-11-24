@@ -6,15 +6,12 @@ const links = [
   { label: "Beranda", href: "/dashboard", exact: true },
   { label: "Perjalanan", href: "/dashboard/trips" },
   { label: "Jelajahi", href: "/dashboard/explore" },
-  { label: "Favorit", href: "/dashboard/favorites" },
   { label: "Template", href: "/dashboard/templates" },
+  { label: "Favorit", href: "/dashboard/favorites" },
+  { label: "Pengaturan", href: "/dashboard/settings" },
 ];
 
-export default async function DashboardLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
   const actor = await requirePageUser();
 
   return (
@@ -25,11 +22,10 @@ export default async function DashboardLayout({
           homeHref="/dashboard"
           links={links}
           userLabel={actor.name ?? actor.email}
+          settingsHref="/dashboard/settings"
         />
       </div>
-      <main className="mx-auto max-w-6xl px-4 py-8 print:max-w-none print:p-0">
-        {children}
-      </main>
+      <main className="mx-auto max-w-6xl px-4 py-8 print:max-w-none print:p-0">{children}</main>
     </div>
   );
 }
